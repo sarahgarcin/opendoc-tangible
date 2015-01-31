@@ -1,0 +1,23 @@
+doctype html
+html
+  head
+    link(href='http://fonts.googleapis.com/css?family=Karla:400,400italic,700,700italic' rel='stylesheet' type='text/css')
+    link(rel='stylesheet', href='/css/style.css')
+    title #{session} | #{title}
+  body.feedback
+    h1 Session de #{session}
+    a(href="/select/#{session}/capture") Prendre une photo
+
+    div.montage
+
+    div.buffer
+        ul
+        //- img(src="http://localhost:8080/coucou/1421235653853.jpg")
+
+    //- scripts
+    script(src='/socket.io/socket.io.js')
+    script var app = {}; app.session = "#{session}";
+    script(src='/js/jquery-1.11.1.js')
+    script(type="text/javascript" src="/js/modernizr-2.0.6.custom.js")
+
+    script(src='/js/select.js')
