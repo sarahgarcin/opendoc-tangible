@@ -25,7 +25,8 @@ jQuery(document).ready(function($) {
 		console.log('Connected ' + sessionId);
 		socket.emit('newUser', {id: sessionId, name: app.session});
 	};
-	function onSocketError(reason) {
+	
+  function onSocketError(reason) {
 		console.log('Unable to connect to server', reason);
 	};
 
@@ -61,6 +62,7 @@ jQuery(document).ready(function($) {
     });
 
     save.addEventListener('click', function () {
+      console.log(recorder.data);
       socket.emit('saveVideo', {data: recorder.data, id: sessionId, name: app.session});
     });
 
@@ -76,6 +78,8 @@ jQuery(document).ready(function($) {
       canvas       = document.querySelector('#canvas'),
       photo        = document.querySelector('#photo'),
       startbutton  = document.querySelector('#capture-btn'),
+      startsm  = document.querySelector('#start-sm'),
+      capturesm  = document.querySelector('#capture-sm'),
       width = 520,
       height = 0;
 
@@ -84,48 +88,56 @@ jQuery(document).ready(function($) {
                            navigator.mozGetUserMedia ||
                            navigator.msGetUserMedia);
     navigator.getMedia(
-    {
-      video: true,
-      audio: false
-    },
-    function(stream) {
-      if (navigator.mozGetUserMedia) {
-        video.mozSrcObject = stream;
-      } else {
-        var vendorURL = window.URL || window.webkitURL;
-        video.src = vendorURL.createObjectURL(stream);
+      {
+        video: true,
+        audio: false
+      },
+      function(stream) {
+        if (navigator.mozGetUserMedia) {
+          video.mozSrcObject = stream;
+        } else {
+          var vendorURL = window.URL || window.webkitURL;
+          video.src = vendorURL.createObjectURL(stream);
+        }
+        video.play();
+      },
+      function(err) {
+        console.log("An error occured! " + err);
       }
-      video.play();
-    },
-    function(err) {
-      console.log("An error occured! " + err);
+    );
+
+    video.addEventListener('canplay', function(ev){
+      if (!streaming) {
+        height = video.videoHeight / (video.videoWidth/width);
+        video.setAttribute('width', width);
+        video.setAttribute('height', height);
+        canvas.setAttribute('width', width);
+        canvas.setAttribute('height', height);
+        streaming = true;
+      }
+    }, false);
+
+    function takepicture() {
+      canvas.width = width;
+      canvas.height = height;
+      canvas.getContext('2d').drawImage(video, 0, 0, width, height);
+      var data = canvas.toDataURL('image/png');
+      photo.setAttribute('src', data);
+      socket.emit('imageCapture', {data: data, id: sessionId, name: app.session});
     }
-  );
 
-  video.addEventListener('canplay', function(ev){
-    if (!streaming) {
-      height = video.videoHeight / (video.videoWidth/width);
-      video.setAttribute('width', width);
-      video.setAttribute('height', height);
-      canvas.setAttribute('width', width);
-      canvas.setAttribute('height', height);
-      streaming = true;
-    }
-  }, false);
+    startbutton.addEventListener('click', function(ev){
+        takepicture();
+      ev.preventDefault();
+    }, false);
 
-  function takepicture() {
-    canvas.width = width;
-    canvas.height = height;
-    canvas.getContext('2d').drawImage(video, 0, 0, width, height);
-    var data = canvas.toDataURL('image/png');
-    photo.setAttribute('src', data);
-    socket.emit('imageCapture', {data: data, id: sessionId, name: app.session});
-  }
-
-  startbutton.addEventListener('click', function(ev){
-      takepicture();
-    ev.preventDefault();
-  }, false);
+    startsm.addEventListener('click', function(){
+      socket.emit('newStopMotion', {id: sessionId, name: app.session});
+      capturesm.addEventListener('click', function(ev){
+        takepicture();
+        ev.preventDefault();
+      }, false);
+    });
 
   }
   

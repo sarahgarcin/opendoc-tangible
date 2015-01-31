@@ -12,6 +12,9 @@
     "gm" :"*",
   	"markdown" : "*",
   	"fs-extra" : "*",
-    "phantom" : "*"
+    "phantom" : "*",
+    "ffmpeg": "*",
+    "fluent-ffmpeg": "*",
+    "sprintf-js": "*"
   }
 }

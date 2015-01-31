@@ -12,7 +12,7 @@ jQuery(document).ready(function($) {
 	/* sockets */
 	socket.on('connect', onSocketConnect);
 	socket.on('error', onSocketError);
-	//socket.on('listSessions', onlistSessions);
+	socket.on('listSessions', onlistSessions);
 
 	// active fonctions
 		addSession();
@@ -52,7 +52,7 @@ jQuery(document).ready(function($) {
         			name: newSession 
     			}
     			sessionList.push(session);
-				socket.emit('newSession', {name: newSession, list: sessionList});
+				socket.emit('newSession', {name: newSession});
 			})
 		})
 	}

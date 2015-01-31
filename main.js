@@ -4,7 +4,10 @@ var fs = require('fs-extra'),
 		gm = require('gm'),
 		markdown = require( "markdown" ).markdown,
 		exec = require('child_process').exec,
-		phantom = require('phantom');
+		phantom = require('phantom'),
+		ffmpeg = require('fluent-ffmpeg')
+		sprintf = require("sprintf-js").sprintf,
+    	vsprintf = require("sprintf-js").vsprintf;
 
 var uploadDir = '/uploads';
 
@@ -13,12 +16,14 @@ module.exports = function(app, io){
 
 	console.log("main module initialized");
 	var sessions_p = "sessions/";
+	var session_list = [];
 
 	io.on("connection", function(socket){
 		socket.on("newUser", onNewUser);
 		socket.on("newUserSelect", onNewUserSelect);
 		socket.on("newSession", addNewSession);
 		socket.on("imageCapture", onNewImage);
+		socket.on("newStopMotion", onNewStopMotion);
 		socket.on("saveVideo", onNewVideo);
 	});
 
@@ -26,7 +31,7 @@ module.exports = function(app, io){
 
 	function onNewUser(req){
 		console.log(req);
-		// listSessions();		
+		//listSessions();		
 	};
 
 	function onNewUserSelect(req){
@@ -35,20 +40,6 @@ module.exports = function(app, io){
 
 	//ajoute les images au dossier de session
 	function onNewImage(req) {
-
-		function decodeBase64Image(dataString) {
-  			var matches = dataString.match(/^data:([A-Za-z-+\/]+);base64,(.+)$/),
-    		response = {};
-
-		  if (matches.length !== 3) {
-		    return new Error('Invalid input string');
-		  }
-
-		  response.type = matches[1];
-		  response.data = new Buffer(matches[2], 'base64');
-
-		  return response;
-		}
 
 		var imageBuffer = decodeBase64Image(req.data);
 		console.log(imageBuffer);
@@ -75,10 +66,13 @@ module.exports = function(app, io){
 	function addNewSession(session) {
     	var sessionPath = 'sessions/'+session.name;
 		fs.ensureDirSync(sessionPath);
-		var fileName = 'sessions/sessions.json';
-		fs.writeFile(fileName, JSON.stringify(session.list), function (err){ 
-            console.log(err);
-        });
+
+		// console.log(session.name);
+		// session_list.push(session.name);
+		// var fileName = 'sessions/sessions.json';
+		// fs.writeFile(fileName, JSON.stringify(session_list), function (err){ 
+  //          console.log(err);
+		// });
 	}
 
 	//Liste les dossiers dans sessions/
@@ -94,13 +88,86 @@ module.exports = function(app, io){
 	}
 
 	function onNewVideo(req) {
+		rmDir(videoDirectory, false);
+		var videoDirectory = 'sessions/' + req.name + '/videos';
+		fs.ensureDirSync(videoDirectory);
+		var x = 0;
+		for(image in req.data) {
+			var imageBuffer = decodeBase64Image(req.data[image]);
+			x += 1;
+			filename = 'sessions/' + req.name + '/videos/img' + x + '.png';
+			fs.writeFile(filename , imageBuffer.data, function(err) { 
+				console.log(err);
+			});
+		}
+		//make sure you set the correct path to your video file
+		var proc = new ffmpeg({ source: videoDirectory + '/img%d.png'})
+		  // loop for 5 seconds
+		  //.loop(5)
+		  // using 25 fps
+		  .fps(8)
+		  //.withFpsInput(10)
+		  // .toFormat('mp4')
+		  // setup event handlers
+		  .on('end', function() {
+		    console.log('file has been converted succesfully');
+		  })
+		  .on('error', function(err) {
+		    console.log('an error happened: ' + err.message);
+		  })
+		  // save to file
+		  .save('sessions/' + req.name + '/' + Date.now() + '.avi');
 		
+		//proc.on('error', function(err, stdout, stderr) {
+		//   console.log(" =====Convert Video Failed======");
+		//   console.log(err);
+		//   console.log("stdout: " + stdout);
+		//   console.log("stderr: " + stderr);
+		// });
 
 	}
 
+	function onNewStopMotion(req) {
+		var StopMotionDirectory = 'sessions/' + req.name + '/' + Date.now();
+		fs.ensureDirSync(StopMotionDirectory);
+	}
 
+// helpers
 
-  // helpers
+function decodeBase64Image(dataString) {
+	var matches = dataString.match(/^data:([A-Za-z-+\/]+);base64,(.+)$/),
+	response = {};
+
+	if (matches.length !== 3) {
+		return new Error('Invalid input string');
+	}
+
+	response.type = matches[1];
+	response.data = new Buffer(matches[2], 'base64');
+
+	return response;
+}
+
+//remove all files in directory
+//Call rmDir('path/to/dir') to remove all inside dir and dir itself. 
+//Call rmDir('path/to/dir', false) to remove all inside, but not dir itself.
+rmDir = function(dirPath, removeSelf) {
+      if (removeSelf === undefined)
+        removeSelf = true;
+      try { var files = fs.readdirSync(dirPath); }
+      catch(e) { return; }
+      if (files.length > 0)
+        for (var i = 0; i < files.length; i++) {
+          var filePath = dirPath + '/' + files[i];
+          if (fs.statSync(filePath).isFile())
+            fs.unlinkSync(filePath);
+          else
+            rmDir(filePath);
+        }
+      if (removeSelf)
+        fs.rmdirSync(dirPath);
+    };
+
   function pad(num, size) {
     var s = num+"";
     while (s.length < size) s = "0" + s;
