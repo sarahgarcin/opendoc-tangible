@@ -24,6 +24,8 @@ module.exports = function(app, io){
 		socket.on("newSession", addNewSession);
 		socket.on("imageCapture", onNewImage);
 		socket.on("newStopMotion", onNewStopMotion);
+		socket.on("imageMotion", onNewImageMotion);
+		socket.on("StopMotion", onStopMotion);
 		socket.on("saveVideo", onNewVideo);
 	});
 
@@ -102,12 +104,8 @@ module.exports = function(app, io){
 		}
 		//make sure you set the correct path to your video file
 		var proc = new ffmpeg({ source: videoDirectory + '/img%d.png'})
-		  // loop for 5 seconds
-		  //.loop(5)
-		  // using 25 fps
+		  // using 8 fps
 		  .fps(8)
-		  //.withFpsInput(10)
-		  // .toFormat('mp4')
 		  // setup event handlers
 		  .on('end', function() {
 		    console.log('file has been converted succesfully');
@@ -117,20 +115,39 @@ module.exports = function(app, io){
 		  })
 		  // save to file
 		  .save('sessions/' + req.name + '/' + Date.now() + '.avi');
-		
-		//proc.on('error', function(err, stdout, stderr) {
-		//   console.log(" =====Convert Video Failed======");
-		//   console.log(err);
-		//   console.log("stdout: " + stdout);
-		//   console.log("stderr: " + stderr);
-		// });
-
 	}
 
 	function onNewStopMotion(req) {
 		var StopMotionDirectory = 'sessions/' + req.name + '/' + Date.now();
 		fs.ensureDirSync(StopMotionDirectory);
+		io.sockets.emit('newStopMotionDirectory', StopMotionDirectory);
 	}
+
+	function onNewImageMotion(req) {
+		var imageBuffer = decodeBase64Image(req.data);
+		filename = req.dir + '/' + req.count + '.png';
+		fs.writeFile(filename , imageBuffer.data, function(err) { 
+			console.log(err);
+		});
+	}
+
+	function onStopMotion(req) {
+		console.log(req.dir);
+		//make sure you set the correct path to your video file
+		var proc = new ffmpeg({ source: req.dir + '/%d.png'})
+		  // using 8 fps
+		  .fps(8)
+		  // setup event handlers
+		  .on('end', function() {
+		    console.log('file has been converted succesfully');
+		  })
+		  .on('error', function(err) {
+		    console.log('an error happened: ' + err.message);
+		  })
+		  // save to file
+		  .save(req.dir + '/' + Date.now() + '.avi');
+	}
+
 
 // helpers
 

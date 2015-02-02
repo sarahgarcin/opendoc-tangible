@@ -3,6 +3,7 @@ jQuery(document).ready(function($) {
 	var serverBaseUrl = document.domain;
 	var socket = io.connect(serverBaseUrl);
 	var sessionId = '';
+  var countImage = 0;
 
 	/**
 	* Events
@@ -80,6 +81,7 @@ jQuery(document).ready(function($) {
       startbutton  = document.querySelector('#capture-btn'),
       startsm  = document.querySelector('#start-sm'),
       capturesm  = document.querySelector('#capture-sm'),
+      stopsm  = document.querySelector('#stop-sm'),
       width = 520,
       height = 0;
 
@@ -126,6 +128,15 @@ jQuery(document).ready(function($) {
       socket.emit('imageCapture', {data: data, id: sessionId, name: app.session});
     }
 
+    function takepictureMotion(dir, count) {
+      canvas.width = width;
+      canvas.height = height;
+      canvas.getContext('2d').drawImage(video, 0, 0, width, height);
+      var data = canvas.toDataURL('image/png');
+      photo.setAttribute('src', data);
+      socket.emit('imageMotion', {data: data, id: sessionId, name: app.session, dir: dir, count: count});
+    }
+
     startbutton.addEventListener('click', function(ev){
         takepicture();
       ev.preventDefault();
@@ -133,10 +144,20 @@ jQuery(document).ready(function($) {
 
     startsm.addEventListener('click', function(){
       socket.emit('newStopMotion', {id: sessionId, name: app.session});
-      capturesm.addEventListener('click', function(ev){
-        takepicture();
-        ev.preventDefault();
-      }, false);
+      socket.on('newStopMotionDirectory', onStopMotionDirectory);
+      function onStopMotionDirectory(dir){
+        capturesm.addEventListener('click', function(ev){
+          countImage ++;
+          takepictureMotion(dir, countImage);
+          ev.preventDefault();
+        }, false);
+        stopsm.addEventListener('click', function(ev){
+          countImage = 0;
+          socket.emit('StopMotion', {id: sessionId, name: app.session, dir: dir});
+          ev.preventDefault();
+        }, false);
+      }
+      
     });
 
   }
