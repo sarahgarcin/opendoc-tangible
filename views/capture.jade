@@ -2,6 +2,7 @@ doctype html
 html
   head
     link(rel='stylesheet', href='/css/style.css')
+    link(rel='stylesheet', href='/css/bootstrap.css')
     title #{session} | #{title}
   body.index
 
@@ -9,21 +10,32 @@ html
 
   div.video
     h3 Video Live Stream
-    video#video
+    video(id="video" autoplay)
 
   div.screenshot
     h3 Screenshot View
     canvas#canvas
 
+  div.audio
+    audio(id="audio" autoplay controls)
+
+
   div.capture
+    button#camera-me Turn on camera
     button#capture-btn Capture
-    button#record-btn Capture Video
+    button(id='record-btn' disabled) Capture Video
+    button(id='stop-btn' disabled) Stop Video
+    span#elasped-time
     button#play-btn Play
     button#reset Reset recording
     button#save-video Enregistrer la vidéo
     button#start-sm Start a new stop motion
     button#capture-sm Capture stop motion
     button#stop-sm Finnish stop motion
+    button#start-recording Start Recording
+    button(id ="pause-recording" disabled) Pause Recording
+    button(id ="stop-recording" disabled) Stop Recording
+    h2#audio-url-preview
 
   img(src="http://placekitten.com/g/320/261" id="photo" alt="photo")
 
@@ -37,7 +49,8 @@ html
   script(src="/js/lib/attachmediastream.bundle.js")
   //- a package for playing back the recording 
   script(src="/js/lib/fauxplay.bundle.js")
-
   script(src="/js/lib/video-recorder.bundle.js")
-
+  //- A real time javascript webm encoder based on a canvas hack
+  script(src="/js/lib/whammy.min.js")
+  script(src="/js/lib/recordRTC.js")
   script(src='/js/capture.js')

@@ -52,6 +52,7 @@ module.exports = function(app, io){
 
 	}
 
+	//Liste les images sur la page select
 	function listImages(req){
 		var dir = "sessions/" + req.name ;
 		fs.readdir( dir, function (err, files) {
@@ -89,6 +90,7 @@ module.exports = function(app, io){
  			}
 	}
 
+	//Crée un dossier vidéo + transforme les images en vidéo
 	function onNewVideo(req) {
 		rmDir(videoDirectory, false);
 		var videoDirectory = 'sessions/' + req.name + '/videos';
@@ -117,12 +119,14 @@ module.exports = function(app, io){
 		  .save('sessions/' + req.name + '/' + Date.now() + '.avi');
 	}
 
+	// Crée un nouveau dossier pour le stop motion
 	function onNewStopMotion(req) {
 		var StopMotionDirectory = 'sessions/' + req.name + '/' + Date.now();
 		fs.ensureDirSync(StopMotionDirectory);
 		io.sockets.emit('newStopMotionDirectory', StopMotionDirectory);
 	}
 
+	// Ajoute des images au dossier du stop motion
 	function onNewImageMotion(req) {
 		var imageBuffer = decodeBase64Image(req.data);
 		filename = req.dir + '/' + req.count + '.png';
@@ -131,6 +135,7 @@ module.exports = function(app, io){
 		});
 	}
 
+	//Transforme les images en vidéos. 
 	function onStopMotion(req) {
 		console.log(req.dir);
 		//make sure you set the correct path to your video file
@@ -151,6 +156,7 @@ module.exports = function(app, io){
 
 // helpers
 
+//Décode les images en base64
 function decodeBase64Image(dataString) {
 	var matches = dataString.match(/^data:([A-Za-z-+\/]+);base64,(.+)$/),
 	response = {};
