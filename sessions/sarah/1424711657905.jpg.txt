@@ -1,0 +1,1 @@
+"{titre: coucou}{légende: ceci est un coucou}{tags: coucou, pouet}"

@@ -18,6 +18,7 @@ jQuery(document).ready(function($) {
   //captureVideo();
   videoCapture();
   audioCapture();
+  events();
 
 	/**
 	* handlers
@@ -34,6 +35,42 @@ jQuery(document).ready(function($) {
 	 console.log('Unable to connect to server', reason);
 	};
 
+  function events(){
+    $('#photo').on('click', function(){
+      $('.media-choice').children().removeClass('active');
+      $(this).addClass('active');
+      $('.photo-capture').css('display', 'block');
+      $('.video-capture').css('display','none');
+      $('.stopmotion-capture').css('display','none');
+      $('.audio-capture').css('display','none');
+    });
+    $('#video-btn').on('click', function(){
+      $('.media-choice').children().removeClass('active');
+      $(this).addClass('active');
+      $('.photo-capture').css('display', 'none');
+      $('.video-capture').css('display','block');
+      $('.stopmotion-capture').css('display','none');
+      $('.audio-capture').css('display','none');
+    });
+    $('#stopmotion').on('click', function(){
+      $('.media-choice').children().removeClass('active');
+      $(this).addClass('active');
+      $('.photo-capture').css('display', 'none');
+      $('.video-capture').css('display','none');
+      $('.stopmotion-capture').css('display','block');
+      $('.audio-capture').css('display','none');
+    });
+    $('#audio').on('click', function(){
+      $('.media-choice').children().removeClass('active');
+      $(this).addClass('active');
+      $('.photo-capture').css('display', 'none');
+      $('.video-capture').css('display','none');
+      $('.stopmotion-capture').css('display','none');
+      $('.audio-capture').css('display','block');
+    });
+  }
+
+  // Capture des videos en format webm
   function videoCapture(){
     (function(exports) {
 
@@ -71,7 +108,7 @@ jQuery(document).ready(function($) {
       }
 
       function turnOnCamera(e) {
-        e.target.disabled = true;
+        // e.target.disabled = true;
         $('#record-btn').disabled = false;
 
         video.controls = false;
@@ -134,7 +171,6 @@ jQuery(document).ready(function($) {
 
         console.log('frames captured: ' + frames.length + ' => ' +
                     ((endTime - startTime) / 1000) + 's video');
-
         embedVideoPreview();
       };
 
@@ -172,10 +208,12 @@ jQuery(document).ready(function($) {
 
         video.src = url;
         downloadLink.href = url;
+        socket.emit('videoCapture', {url: url, id: sessionId, name: app.session});
+
       }
 
       function initEvents() {
-        $('#camera-me').addEventListener('click', turnOnCamera);
+        $('#video-btn').addEventListener('click', turnOnCamera);
         $('#record-btn').addEventListener('click', record);
         $('#stop-btn').addEventListener('click', stop);
       }
@@ -185,7 +223,6 @@ jQuery(document).ready(function($) {
       exports.$ = $;
 
     })(window);
-
   }
   
   //Fonction pour capturer une vidéo à partir de photos encoder en base64
@@ -253,7 +290,7 @@ jQuery(document).ready(function($) {
     navigator.getMedia(
       {
         video: true,
-        audio: false
+        audio: true
       },
       function(stream) {
         if (navigator.mozGetUserMedia) {
@@ -287,7 +324,12 @@ jQuery(document).ready(function($) {
       canvas.getContext('2d').drawImage(video, 0, 0, width, height);
       var data = canvas.toDataURL('image/png');
       photo.setAttribute('src', data);
-      socket.emit('imageCapture', {data: data, id: sessionId, name: app.session});
+      $("#valider").on('click', function(){
+        var titreImage = $('input.titre').val();
+        var legendeImage = $('textarea.legende').val();
+        var tagsImage = $('input.tags').val();
+        socket.emit('imageCapture', {data: data, id: sessionId, name: app.session, titre: titreImage, legende: legendeImage, tags: tagsImage});
+      });
     }
 
     // fonction qui prend des photos pour le stop motion et qui les envoie au serveur
@@ -345,7 +387,7 @@ jQuery(document).ready(function($) {
           params[d(match[1])] = d(match[2]);
 
       window.params = params;
-  })();
+    })();
     var recordAudio = document.getElementById('start-recording'),
         stopRecordingAudio = document.getElementById('stop-recording'),
         pauseResumeAudio = document.getElementById('pause-recording'),

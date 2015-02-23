@@ -1,41 +1,60 @@
 doctype html
 html
   head
-    link(rel='stylesheet', href='/css/style.css')
     link(rel='stylesheet', href='/css/bootstrap.css')
+    link(rel='stylesheet', href='/css/style.css')
     title #{session} | #{title}
   body.index
 
-  h1 Capture page 
+  header.header
+    a(href='/select/sarah') retour à la bibliothèque des médias
 
-  div.video
-    h3 Video Live Stream
-    video(id="video" autoplay)
+  div.media-choice
+    button#photo Images
+    button#video-btn Vidéos
+    button#stopmotion Stop motion
+    button#audio Sons
 
-  div.screenshot
-    h3 Screenshot View
-    canvas#canvas
+  div.left
+    div.video
+      h3 Video Live Stream
+      video(id="video" autoplay)
 
-  div.audio
-    audio(id="audio" autoplay controls)
+    div.capture
+      div.photo-capture
+        button#capture-btn Capture
+      div.video-capture
+        button(id='record-btn' disabled) Capture Video
+        button(id='stop-btn' disabled) Stop Video
+        span#elasped-time
+        button#play-btn Play
+        button#reset Reset recording
+        button#save-video Enregistrer la vidéo
+      div.stopmotion-capture
+        button#start-sm Start a new stop motion
+        button#capture-sm Capture stop motion
+        button#stop-sm Finnish stop motion
+      div.audio-capture
+        button#start-recording Start Recording
+        button(id ="pause-recording" disabled) Pause Recording
+        button(id ="stop-recording" disabled) Stop Recording
+        h2#audio-url-preview
 
+  div.right   
+    div.screenshot
+      h3 Screenshot View
+      canvas#canvas
+    
+    div.audio
+      audio(id="audio" autoplay controls)
 
-  div.capture
-    button#camera-me Turn on camera
-    button#capture-btn Capture
-    button(id='record-btn' disabled) Capture Video
-    button(id='stop-btn' disabled) Stop Video
-    span#elasped-time
-    button#play-btn Play
-    button#reset Reset recording
-    button#save-video Enregistrer la vidéo
-    button#start-sm Start a new stop motion
-    button#capture-sm Capture stop motion
-    button#stop-sm Finnish stop motion
-    button#start-recording Start Recording
-    button(id ="pause-recording" disabled) Pause Recording
-    button(id ="stop-recording" disabled) Stop Recording
-    h2#audio-url-preview
+    div.meta
+      input(class="titre" placeholder="Titre")
+      textarea(class="legende" placeholder="Légende")
+      input(class="tags" placeholder="Tags")
+
+    div.valid
+      button#valider Enregistrer
 
   img(src="http://placekitten.com/g/320/261" id="photo" alt="photo")
 
@@ -50,7 +69,7 @@ html
   //- a package for playing back the recording 
   script(src="/js/lib/fauxplay.bundle.js")
   script(src="/js/lib/video-recorder.bundle.js")
+  script(src="/js/lib/recordRTC.js")
   //- A real time javascript webm encoder based on a canvas hack
   script(src="/js/lib/whammy.min.js")
-  script(src="/js/lib/recordRTC.js")
   script(src='/js/capture.js')

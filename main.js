@@ -26,7 +26,8 @@ module.exports = function(app, io){
 		socket.on("newStopMotion", onNewStopMotion);
 		socket.on("imageMotion", onNewImageMotion);
 		socket.on("StopMotion", onStopMotion);
-		socket.on("saveVideo", onNewVideo);
+		socket.on("videoCapture", onNewVideo)
+		//socket.on("saveVideo", SaveVideo);
 	});
 
 	// events
@@ -44,11 +45,17 @@ module.exports = function(app, io){
 	function onNewImage(req) {
 
 		var imageBuffer = decodeBase64Image(req.data);
-		console.log(imageBuffer);
+		// console.log(imageBuffer);
 		filename = 'sessions/' + req.name + '/' + Date.now() + '.jpg';
 		fs.writeFile(filename , imageBuffer.data, function(err) { 
 			console.log(err);
 		});
+		var filemeta = filename + '.txt';
+		console.log(req.legende + " " + req.tags);
+		fs.writeFile(filemeta, JSON.stringify('{titre: ' + req.titre + '}{légende: '+ req.legende + '}{tags: ' + req.tags +'}' ), function (err){ // Écrire dans les notes + timestamp + user dans un fichier json
+            console.log(err);
+        });
+
 
 	}
 
@@ -90,8 +97,12 @@ module.exports = function(app, io){
  			}
 	}
 
+	function onNewVideo(req){
+
+	}
+
 	//Crée un dossier vidéo + transforme les images en vidéo
-	function onNewVideo(req) {
+	function SaveVideo(req) {
 		rmDir(videoDirectory, false);
 		var videoDirectory = 'sessions/' + req.name + '/videos';
 		fs.ensureDirSync(videoDirectory);

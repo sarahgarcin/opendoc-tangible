@@ -1,20 +1,21 @@
 {
   "repository": {
-  "type": "git",
-  "url": "git://github.com/g-u-i/va-et-vient.git"
+    "type": "git",
+    "url": "git://github.com/g-u-i/va-et-vient.git"
   },
   "dependencies": {
+    "download": "^3.3.0",
     "express": "3.1.0",
-    "jade": "*",
-    "socket.io": "*",
-    "underscore": "*",
-    "glob" :"*",
-    "gm" :"*",
-  	"markdown" : "*",
-  	"fs-extra" : "*",
-    "phantom" : "*",
     "ffmpeg": "*",
     "fluent-ffmpeg": "*",
-    "sprintf-js": "*"
+    "fs-extra": "*",
+    "glob": "*",
+    "gm": "*",
+    "jade": "*",
+    "markdown": "*",
+    "phantom": "*",
+    "socket.io": "*",
+    "sprintf-js": "*",
+    "underscore": "*"
   }
 }
