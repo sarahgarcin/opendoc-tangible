@@ -237,9 +237,7 @@ jQuery(document).ready(function($) {
 
     getUserMedia(function (err, stream) {
       if (err) return console.log(err);
-
       attachMediaStream(stream, video, {muted: true});
-
       recorder = window.recorder = new VideoRecorder(video);
     });
 
@@ -324,11 +322,16 @@ jQuery(document).ready(function($) {
       canvas.getContext('2d').drawImage(video, 0, 0, width, height);
       var data = canvas.toDataURL('image/png');
       photo.setAttribute('src', data);
-      $("#valider").on('click', function(){
+      $(".form-meta").slideDown( "slow" ); 
+      $(".form-meta").addClass('active');
+      $("#valider").off('click');
+      $("#valider").on('click', function(e){
         var titreImage = $('input.titre').val();
         var legendeImage = $('textarea.legende').val();
         var tagsImage = $('input.tags').val();
         socket.emit('imageCapture', {data: data, id: sessionId, name: app.session, titre: titreImage, legende: legendeImage, tags: tagsImage});
+        $(".form-meta.active").slideUp( "slow" ); 
+        $(".form-meta").removeClass('active');
       });
     }
 
@@ -346,7 +349,8 @@ jQuery(document).ready(function($) {
       // Event bouton prendre une photo
       startbutton.addEventListener('click', function(ev){
           takepicture();
-        ev.preventDefault();
+        //ev.preventDefault();
+        ev.stopPropagation();
       }, false);
 
       // Event bouton stop motion

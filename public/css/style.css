@@ -64,7 +64,10 @@ body {
   background-color: #48c2b5;
   outline: none;
 }
-.meta input {
+.form-meta {
+  display: none;
+}
+.form-meta .meta input {
   display: block;
   width: 80%;
   margin-bottom: 10px;
@@ -72,7 +75,7 @@ body {
   border: none;
   outline: none;
 }
-.meta textarea {
+.form-meta .meta textarea {
   width: 80%;
   height: 100px;
   margin-bottom: 10px;

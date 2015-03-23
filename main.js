@@ -43,20 +43,42 @@ module.exports = function(app, io){
 
 	//ajoute les images au dossier de session
 	function onNewImage(req) {
-
 		var imageBuffer = decodeBase64Image(req.data);
-		// console.log(imageBuffer);
-		filename = 'sessions/' + req.name + '/' + Date.now() + '.jpg';
+		currentDate = Date.now();
+		filename = 'sessions/' + req.name + '/' + currentDate + '.jpg';
 		fs.writeFile(filename , imageBuffer.data, function(err) { 
 			console.log(err);
 		});
-		var filemeta = filename + '.txt';
-		console.log(req.legende + " " + req.tags);
-		fs.writeFile(filemeta, JSON.stringify('{titre: ' + req.titre + '}{légende: '+ req.legende + '}{tags: ' + req.tags +'}' ), function (err){ // Écrire dans les notes + timestamp + user dans un fichier json
+		
+		filetext = 'sessions/' + req.name + '/' +req.name+'.json';
+		var objectJson = {"images":[{ "name" : currentDate, "titre" : req.titre, "légende" : req.legende, "tags" : req.tags}]};
+		if(!fs.existsSync(filetext)){
+			jsonString = JSON.stringify(objectJson);
+			fs.appendFile(filetext, jsonString, function(err) {
+        if(err) {
             console.log(err);
-        });
-
-
+        } else {
+            console.log("The file was saved!");
+        }
+	    });
+		}
+		else {
+			jsonAdd = [{ "name" : currentDate, "titre" : req.titre, "légende" : req.legende, "tags" : req.tags}];
+			objectJson["images"] = jsonAdd;
+			fs.appendFile(filetext, JSON.stringify(objectJson["images"]), function(err) {
+        if(err) {
+            console.log(err);
+        } else {
+            console.log("The file was saved!");
+        }
+	    });
+		}
+		
+		// var filemeta = filename + '.txt';
+		// console.log(req.legende + " " + req.tags);
+		// fs.writeFile(filemeta, JSON.stringify('{titre: ' + req.titre + '}{légende: '+ req.legende + '}{tags: ' + req.tags +'}' ), function (err){ // Écrire dans les notes + timestamp + user dans un fichier json
+  //           console.log(err);
+  //       });
 	}
 
 	//Liste les images sur la page select

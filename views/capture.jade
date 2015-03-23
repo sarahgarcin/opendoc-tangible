@@ -48,15 +48,14 @@ html
     div.audio
       audio(id="audio" autoplay controls)
 
-    div.meta
-      input(class="titre" placeholder="Titre")
-      textarea(class="legende" placeholder="Légende")
-      input(class="tags" placeholder="Tags")
+    div.form-meta
+      div.meta
+        input(class="titre" placeholder="Titre")
+        textarea(class="legende" placeholder="Légende")
+        input(class="tags" placeholder="Tags")
 
-    div.valid
-      button#valider Enregistrer
-
-  img(src="http://placekitten.com/g/320/261" id="photo" alt="photo")
+      div.valid
+        button#valider Enregistrer
 
   //- scripts
   script(src='/socket.io/socket.io.js')
