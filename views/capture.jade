@@ -24,12 +24,14 @@ html
       div.photo-capture
         button#capture-btn Capture
       div.video-capture
-        button(id='record-btn' disabled) Capture Video
-        button(id='stop-btn' disabled) Stop Video
+        div.video-save
+          button(id='record-btn' disabled) Capture Video
+          button(id='stop-btn' disabled) Stop Video
         span#elasped-time
-        button#play-btn Play
-        button#reset Reset recording
-        button#save-video Enregistrer la vidéo
+        //div.video-play
+          //button#play-btn Play
+          //button#reset Reset recording
+          //button#save-video Enregistrer la vidéo
       div.stopmotion-capture
         button#start-sm Start a new stop motion
         button#capture-sm Capture stop motion
@@ -43,12 +45,12 @@ html
   div.right   
     div.screenshot
       h3 Screenshot View
-      canvas#canvas
+      canvas#canvas.canvas-view
     
     div.audio
       audio(id="audio" autoplay controls)
 
-    div.form-meta
+    div.form-meta#form-meta
       div.meta
         input(class="titre" placeholder="Titre")
         textarea(class="legende" placeholder="Légende")

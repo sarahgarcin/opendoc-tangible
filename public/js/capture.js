@@ -72,21 +72,24 @@ jQuery(document).ready(function($) {
 
   // Capture des videos en format webm
   function videoCapture(){
+    $('#stop-btn').on('click', function(){
+      $(".form-meta").slideDown( "slow" ); 
+      $(".form-meta").addClass('active');
+    });
+
     (function(exports) {
-
       exports.URL = exports.URL || exports.webkitURL;
-
       exports.requestAnimationFrame = exports.requestAnimationFrame ||
-          exports.webkitRequestAnimationFrame || exports.mozRequestAnimationFrame ||
-          exports.msRequestAnimationFrame || exports.oRequestAnimationFrame;
-
+      exports.webkitRequestAnimationFrame || exports.mozRequestAnimationFrame ||
+      exports.msRequestAnimationFrame || exports.oRequestAnimationFrame;
       exports.cancelAnimationFrame = exports.cancelAnimationFrame ||
-          exports.webkitCancelAnimationFrame || exports.mozCancelAnimationFrame ||
-          exports.msCancelAnimationFrame || exports.oCancelAnimationFrame;
+      exports.webkitCancelAnimationFrame || exports.mozCancelAnimationFrame ||
+      exports.msCancelAnimationFrame || exports.oCancelAnimationFrame;
+
 
       navigator.getUserMedia = navigator.getUserMedia ||
-          navigator.webkitGetUserMedia || navigator.mozGetUserMedia ||
-          navigator.msGetUserMedia;
+      navigator.webkitGetUserMedia || navigator.mozGetUserMedia ||
+      navigator.msGetUserMedia;
 
       var ORIGINAL_DOC_TITLE = document.title;
       var video = $('#video');
@@ -95,6 +98,7 @@ jQuery(document).ready(function($) {
       var startTime = null;
       var endTime = null;
       var frames = [];
+
 
       function $(selector) {
         return document.querySelector(selector) || null;
@@ -151,9 +155,7 @@ jQuery(document).ready(function($) {
 
         function drawVideoFrame_(time) {
           rafId = requestAnimationFrame(drawVideoFrame_);
-
           ctx.drawImage(video, 0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
-
           var url = canvas.toDataURL('image/webp', 1); // image/jpeg is way faster :(
           frames.push(url);
         };
@@ -166,18 +168,17 @@ jQuery(document).ready(function($) {
         endTime = Date.now();
         $('#stop-btn').disabled = true;
         document.title = ORIGINAL_DOC_TITLE;
-
         toggleActivateRecordButton();
-
         console.log('frames captured: ' + frames.length + ' => ' +
                     ((endTime - startTime) / 1000) + 's video');
         embedVideoPreview();
       };
 
       function embedVideoPreview(opt_url) {
+        $('.screenshot .canvas-view').style.display = "none";
         var url = opt_url || null;
-        var video = $('.capture video') || null;
-        var downloadLink = $('.capture a[download]') || null;
+        var video = $('.screenshot video') || null;
+        var downloadLink = $('.screenshot a[download]') || null;
 
         if (!video) {
           video = document.createElement('video');
@@ -186,7 +187,7 @@ jQuery(document).ready(function($) {
           video.loop = true;
           video.style.width = canvas.width + 'px';
           video.style.height = canvas.height + 'px';
-          $('.capture').appendChild(video);
+          $('.screenshot').appendChild(video);
           
           downloadLink = document.createElement('a');
           downloadLink.download = 'capture.webm';
@@ -195,7 +196,7 @@ jQuery(document).ready(function($) {
           var p = document.createElement('p');
           p.appendChild(downloadLink);
 
-          $('.capture').appendChild(p);
+          $('.screenshot').appendChild(p);
 
         } else {
           window.URL.revokeObjectURL(video.src);
@@ -226,6 +227,7 @@ jQuery(document).ready(function($) {
   }
   
   //Fonction pour capturer une vidéo à partir de photos encoder en base64
+  //fonction désactivée
   function captureVideo(){
     var image = document.getElementById('photo');
     var video = document.getElementById('video');
