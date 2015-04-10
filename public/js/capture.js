@@ -369,6 +369,10 @@ jQuery(document).ready(function($) {
           stopsm.addEventListener('click', function(ev){
             countImage = 0;
             socket.emit('StopMotion', {id: sessionId, name: app.session, dir: dir});
+            $('.screenshot .canvas-view').hide();
+            setTimeout(function() {
+              $('.screenshot').append("<video src='http://localhost:8080/" + app.session + "/stopmotion.webm' autoplay='true' controls='true' loop='true' width='500' height='500'></video>");
+            }, 2000);
             ev.preventDefault();
           }, false);
         }

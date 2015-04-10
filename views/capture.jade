@@ -17,7 +17,6 @@ html
 
   div.left
     div.video
-      h3 Video Live Stream
       video(id="video" autoplay)
 
     div.capture
@@ -28,14 +27,10 @@ html
           button(id='record-btn' disabled) Capture Video
           button(id='stop-btn' disabled) Stop Video
         span#elasped-time
-        //div.video-play
-          //button#play-btn Play
-          //button#reset Reset recording
-          //button#save-video Enregistrer la vidéo
       div.stopmotion-capture
         button#start-sm Start a new stop motion
         button#capture-sm Capture stop motion
-        button#stop-sm Finnish stop motion
+        button#stop-sm Visualiser
       div.audio-capture
         button#start-recording Start Recording
         button(id ="pause-recording" disabled) Pause Recording
@@ -44,7 +39,6 @@ html
 
   div.right   
     div.screenshot
-      h3 Screenshot View
       canvas#canvas.canvas-view
     
     div.audio

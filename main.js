@@ -23,7 +23,9 @@ module.exports = function(app, io){
 		socket.on("newUserSelect", onNewUserSelect);
 		socket.on("newSession", addNewSession);
 		socket.on("imageCapture", onNewImage);
-		socket.on("newStopMotion", onNewStopMotion);
+		socket.on("newStopMotion", 
+
+			onNewStopMotion);
 		socket.on("imageMotion", onNewImageMotion);
 		socket.on("StopMotion", onStopMotion);
 		socket.on("videoCapture", onNewVideo)
@@ -154,7 +156,7 @@ module.exports = function(app, io){
 
 	// Crée un nouveau dossier pour le stop motion
 	function onNewStopMotion(req) {
-		var StopMotionDirectory = 'sessions/' + req.name + '/' + Date.now();
+		var StopMotionDirectory = 'sessions/' + req.name + '/stopmotion';
 		fs.ensureDirSync(StopMotionDirectory);
 		io.sockets.emit('newStopMotionDirectory', StopMotionDirectory);
 	}
@@ -173,8 +175,8 @@ module.exports = function(app, io){
 		console.log(req.dir);
 		//make sure you set the correct path to your video file
 		var proc = new ffmpeg({ source: req.dir + '/%d.png'})
-		  // using 8 fps
-		  .fps(8)
+		  // using 12 fps
+		  .fps(12)
 		  // setup event handlers
 		  .on('end', function() {
 		    console.log('file has been converted succesfully');
@@ -183,7 +185,7 @@ module.exports = function(app, io){
 		    console.log('an error happened: ' + err.message);
 		  })
 		  // save to file
-		  .save(req.dir + '/' + Date.now() + '.avi');
+		  .save('sessions/' + req.name + '/stopmotion.webm');
 	}
 
 
