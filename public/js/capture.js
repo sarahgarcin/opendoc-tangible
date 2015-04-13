@@ -371,8 +371,19 @@ jQuery(document).ready(function($) {
             socket.emit('StopMotion', {id: sessionId, name: app.session, dir: dir});
             $('.screenshot .canvas-view').hide();
             setTimeout(function() {
-              $('.screenshot').append("<video src='http://localhost:8080/" + app.session + "/stopmotion.webm' autoplay='true' controls='true' loop='true' width='500' height='500'></video>");
-            }, 2000);
+              $('.screenshot').append("<video src='http://localhost:8080/" + app.session + "/stopmotion.mp4' autoplay='true' controls='true' loop='true' width='500' height='500'></video>");
+              $(".form-meta").slideDown( "slow" ); 
+              $(".form-meta").addClass('active');
+              $("#valider").off('click');
+              $("#valider").on('click', function(e){
+                var titreSM = $('input.titre').val();
+                var legendeSM = $('textarea.legende').val();
+                var tagsSM = $('input.tags').val();
+                socket.emit('stopmotionCapture', {id: sessionId, name: app.session, titre: titreSM, legende: legendeSM, tags: tagsSM, dir: dir});
+                $(".form-meta.active").slideUp( "slow" ); 
+                $(".form-meta").removeClass('active');
+              });
+            }, 1000);
             ev.preventDefault();
           }, false);
         }
@@ -412,21 +423,21 @@ jQuery(document).ready(function($) {
         var recorder;
 
         recordAudio.onclick = function() {
-            if (!audioStream)
-                navigator.getUserMedia(audioConstraints, function(stream) {
-                    if (window.IsChrome) stream = new window.MediaStream(stream.getAudioTracks());
-                    audioStream = stream;
+          if (!audioStream)
+              navigator.getUserMedia(audioConstraints, function(stream) {
+                  if (window.IsChrome) stream = new window.MediaStream(stream.getAudioTracks());
+                  audioStream = stream;
 
-                    // "audio" is a default type
-                    recorder = window.RecordRTC(stream, {
-                        type: 'audio',
-                        bufferSize: typeof params.bufferSize == 'undefined' ? 16384 : params.bufferSize,
-                        sampleRate: typeof params.sampleRate == 'undefined' ? 44100 : params.sampleRate,
-                        leftChannel: params.leftChannel || false,
-                        disableLogs: params.disableLogs || false
-                    });
-                    recorder.startRecording();
-                }, function() {});
+                  // "audio" is a default type
+                  recorder = window.RecordRTC(stream, {
+                      type: 'audio',
+                      bufferSize: typeof params.bufferSize == 'undefined' ? 16384 : params.bufferSize,
+                      sampleRate: typeof params.sampleRate == 'undefined' ? 44100 : params.sampleRate,
+                      leftChannel: params.leftChannel || false,
+                      disableLogs: params.disableLogs || false
+                  });
+                  recorder.startRecording();
+              }, function() {});
             else {
                 audio.src = URL.createObjectURL(audioStream);
                 audio.muted = true;

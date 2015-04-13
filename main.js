@@ -23,11 +23,10 @@ module.exports = function(app, io){
 		socket.on("newUserSelect", onNewUserSelect);
 		socket.on("newSession", addNewSession);
 		socket.on("imageCapture", onNewImage);
-		socket.on("newStopMotion", 
-
-			onNewStopMotion);
+		socket.on("newStopMotion", onNewStopMotion);
 		socket.on("imageMotion", onNewImageMotion);
 		socket.on("StopMotion", onStopMotion);
+		socket.on("stopmotionCapture", onStopMotionCapture);
 		socket.on("videoCapture", onNewVideo)
 		//socket.on("saveVideo", SaveVideo);
 	});
@@ -157,6 +156,9 @@ module.exports = function(app, io){
 	// Crée un nouveau dossier pour le stop motion
 	function onNewStopMotion(req) {
 		var StopMotionDirectory = 'sessions/' + req.name + '/stopmotion';
+		if(StopMotionDirectory){
+			fs.removeSync(StopMotionDirectory);
+		}
 		fs.ensureDirSync(StopMotionDirectory);
 		io.sockets.emit('newStopMotionDirectory', StopMotionDirectory);
 	}
@@ -173,10 +175,14 @@ module.exports = function(app, io){
 	//Transforme les images en vidéos. 
 	function onStopMotion(req) {
 		console.log(req.dir);
+		var videoPath = 'sessions/' + req.name + '/stopmotion.mp4';
+		if(videoPath){
+			fs.remove(videoPath);
+		}
 		//make sure you set the correct path to your video file
 		var proc = new ffmpeg({ source: req.dir + '/%d.png'})
 		  // using 12 fps
-		  .fps(12)
+		  .fps(7)
 		  // setup event handlers
 		  .on('end', function() {
 		    console.log('file has been converted succesfully');
@@ -185,7 +191,54 @@ module.exports = function(app, io){
 		    console.log('an error happened: ' + err.message);
 		  })
 		  // save to file
-		  .save('sessions/' + req.name + '/stopmotion.webm');
+		  .save(videoPath);
+	}
+
+	function onStopMotionCapture(req){
+		currentDate = Date.now();
+		//SAVE VIDEO
+		var videoPath = 'sessions/' + req.name + '/' + req.titre + '.mp4';
+		if('sessions/' + req.name + '/stopmotion.mp4'){
+			fs.remove('sessions/' + req.name + '/stopmotion.mp4');
+		}
+		//make sure you set the correct path to your video file
+		var proc = new ffmpeg({ source: req.dir + '/%d.png'})
+		  // using 12 fps
+		  .fps(7)
+		  // setup event handlers
+		  .on('end', function() {
+		    console.log('file has been converted succesfully');
+		  })
+		  .on('error', function(err) {
+		    console.log('an error happened: ' + err.message);
+		  })
+		  // save to file
+		  .save(videoPath);
+
+
+		filetext = 'sessions/' + req.name + '/' +req.name+'.json';
+		var objectJson = {"videos":[{ "name" : currentDate, "titre" : req.titre, "légende" : req.legende, "tags" : req.tags}]};
+		if(!fs.existsSync(filetext)){
+			jsonString = JSON.stringify(objectJson);
+			fs.appendFile(filetext, jsonString, function(err) {
+        if(err) {
+            console.log(err);
+        } else {
+            console.log("The file was saved!");
+        }
+	    });
+		}
+		else {
+			jsonAdd = [{ "name" : currentDate, "titre" : req.titre, "légende" : req.legende, "tags" : req.tags}];
+			objectJson["videos"] = jsonAdd;
+			fs.appendFile(filetext, JSON.stringify(objectJson["videos"]), function(err) {
+	        if(err) {
+	            console.log(err);
+	        } else {
+	            console.log("The file was saved!");
+	        }
+	    });
+		}
 	}
 
 
