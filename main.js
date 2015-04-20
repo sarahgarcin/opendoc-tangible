@@ -17,6 +17,7 @@ module.exports = function(app, io){
 	console.log("main module initialized");
 	var sessions_p = "sessions/";
 	var session_list = [];
+	currentDate = Date.now();
 
 	io.on("connection", function(socket){
 		socket.on("newUser", onNewUser);
@@ -28,6 +29,7 @@ module.exports = function(app, io){
 		socket.on("StopMotion", onStopMotion);
 		socket.on("stopmotionCapture", onStopMotionCapture);
 		socket.on("videoCapture", onNewVideo);
+		socket.on("audioVideo", onNewAudioVideo);
 		// socket.on("sonCapture", onNewSon);
 		//socket.on("saveVideo", SaveVideo);
 	});
@@ -240,6 +242,69 @@ module.exports = function(app, io){
 	        }
 	    });
 		}
+	}
+
+	function onNewAudioVideo(data){
+    var fileName = currentDate;
+    io.sockets.emit('ffmpeg-output', 0);
+    writeToDisk(data.files.audio.dataURL, fileName + '.wav', data.name);
+
+    // if it is chrome
+    if (data.files.video) {
+        writeToDisk(data.files.video.dataURL, fileName + '.webm', data.name);
+        merge(fileName, data.name);
+    }
+
+    // if it is firefox or if user is recording only audio
+    else io.sockets.emit('merged', fileName + '.wav', data.name);
+	}
+
+	function writeToDisk(dataURL, fileName, session) {
+    var fileExtension = fileName.split('.').pop(),
+        fileRootNameWithBase = './sessions/' + session + '/audiovideo/' + fileName,
+        filePath = fileRootNameWithBase,
+        fileID = 2,
+        fileBuffer;
+
+    // @todo return the new filename to client
+    while (fs.existsSync(filePath)) {
+        filePath = fileRootNameWithBase + '(' + fileID + ').' + fileExtension;
+        fileID += 1;
+    }
+
+    dataURL = dataURL.split(',').pop();
+    fileBuffer = new Buffer(dataURL, 'base64');
+    fs.writeFileSync(filePath, fileBuffer);
+
+    console.log('filePath', filePath);
+	}
+
+	function merge(fileName, session) {
+	    var FFmpeg = require('fluent-ffmpeg');
+
+	    var audioFile = path.join(__dirname, 'sessions', session, 'audiovideo', fileName + '.wav'),
+	        videoFile = path.join(__dirname, 'sessions', session, 'audiovideo', fileName + '.webm'),
+	        mergedFile = path.join(__dirname, 'sessions', session, 'audiovideo', fileName + '-merged.webm');
+
+	    new FFmpeg({
+	            source: videoFile
+	        })
+	        .addInput(audioFile)
+	        .on('error', function (err) {
+	            io.sockets.emit('ffmpeg-error', 'ffmpeg : An error occurred: ' + err.message);
+	        })
+	        .on('progress', function (progress) {
+	            io.sockets.emit('ffmpeg-output', Math.round(progress.percent));
+	        })
+	        .on('end', function () {
+	            io.sockets.emit('merged', fileName + '-merged.webm', session);
+	            console.log('Merging finished !');
+
+	            // removing audio/video files
+	            fs.unlink(audioFile);
+	            fs.unlink(videoFile);
+	        })
+	        .saveToFile(mergedFile);
 	}
 
 	// function onNewSon(req){
