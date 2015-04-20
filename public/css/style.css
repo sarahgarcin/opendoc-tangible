@@ -23,6 +23,9 @@ body {
   background-color: #FFF;
   padding-left: 50px;
 }
+.right .son {
+  display: none;
+}
 .video video,
 .screenshot canvas {
   width: 80%;

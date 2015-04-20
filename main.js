@@ -7,7 +7,7 @@ var fs = require('fs-extra'),
 		phantom = require('phantom'),
 		ffmpeg = require('fluent-ffmpeg')
 		sprintf = require("sprintf-js").sprintf,
-    	vsprintf = require("sprintf-js").vsprintf;
+    vsprintf = require("sprintf-js").vsprintf;
 
 var uploadDir = '/uploads';
 
@@ -27,7 +27,8 @@ module.exports = function(app, io){
 		socket.on("imageMotion", onNewImageMotion);
 		socket.on("StopMotion", onStopMotion);
 		socket.on("stopmotionCapture", onStopMotionCapture);
-		socket.on("videoCapture", onNewVideo)
+		socket.on("videoCapture", onNewVideo);
+		// socket.on("sonCapture", onNewSon);
 		//socket.on("saveVideo", SaveVideo);
 	});
 
@@ -97,14 +98,14 @@ module.exports = function(app, io){
 
 	//Ajoute le dossier de la session + l'ajouter à la liste des sessions
 	function addNewSession(session) {
-    	var sessionPath = 'sessions/'+session.name;
+    var sessionPath = 'sessions/'+session.name;
 		fs.ensureDirSync(sessionPath);
 
 		// console.log(session.name);
 		// session_list.push(session.name);
 		// var fileName = 'sessions/sessions.json';
 		// fs.writeFile(fileName, JSON.stringify(session_list), function (err){ 
-  //          console.log(err);
+  	//          console.log(err);
 		// });
 	}
 
@@ -240,6 +241,18 @@ module.exports = function(app, io){
 	    });
 		}
 	}
+
+	// function onNewSon(req){
+	// 	console.log(req.dataURL);
+	// 	console.log(req.fileName);
+	// 	writeToDisk(req.dataURL, req.fileName, function(err) {
+ //      if(err) {
+ //          console.log(err);
+ //      } else {
+ //          console.log("Audio file was saved!");
+ //      }
+ //    });
+	// }
 
 
 // helpers

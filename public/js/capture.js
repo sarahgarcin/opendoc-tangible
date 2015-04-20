@@ -67,6 +67,8 @@ jQuery(document).ready(function($) {
       $('.video-capture').css('display','none');
       $('.stopmotion-capture').css('display','none');
       $('.audio-capture').css('display','block');
+      $('.screenshot #canvas').css('display', 'none');
+      $('.right .son').css('display', 'block');
     });
   }
 
@@ -412,7 +414,7 @@ jQuery(document).ready(function($) {
     var recordAudio = document.getElementById('start-recording'),
         stopRecordingAudio = document.getElementById('stop-recording'),
         pauseResumeAudio = document.getElementById('pause-recording'),
-        audio = document.getElementById('audio');
+        audio = document.getElementById('son');
 
         var audioConstraints = {
             audio: true,
@@ -424,20 +426,20 @@ jQuery(document).ready(function($) {
 
         recordAudio.onclick = function() {
           if (!audioStream)
-              navigator.getUserMedia(audioConstraints, function(stream) {
-                  if (window.IsChrome) stream = new window.MediaStream(stream.getAudioTracks());
-                  audioStream = stream;
+            navigator.getUserMedia(audioConstraints, function(stream) {
+                if (window.IsChrome) stream = new window.MediaStream(stream.getAudioTracks());
+                audioStream = stream;
 
-                  // "audio" is a default type
-                  recorder = window.RecordRTC(stream, {
-                      type: 'audio',
-                      bufferSize: typeof params.bufferSize == 'undefined' ? 16384 : params.bufferSize,
-                      sampleRate: typeof params.sampleRate == 'undefined' ? 44100 : params.sampleRate,
-                      leftChannel: params.leftChannel || false,
-                      disableLogs: params.disableLogs || false
-                  });
-                  recorder.startRecording();
-              }, function() {});
+                // "audio" is a default type
+                recorder = window.RecordRTC(stream, {
+                    type: 'audio',
+                    bufferSize: typeof params.bufferSize == 'undefined' ? 16384 : params.bufferSize,
+                    sampleRate: typeof params.sampleRate == 'undefined' ? 44100 : params.sampleRate,
+                    leftChannel: params.leftChannel || false,
+                    disableLogs: params.disableLogs || false,
+                });
+                recorder.startRecording();
+            }, function() {});
             else {
                 audio.src = URL.createObjectURL(audioStream);
                 audio.muted = true;
@@ -453,19 +455,21 @@ jQuery(document).ready(function($) {
         };
 
         stopRecordingAudio.onclick = function() {
-            this.disabled = true;
-            recordAudio.disabled = false;
-            audio.src = '';
+          console.log(recorder);
+          this.disabled = true;
+          recordAudio.disabled = false;
+          audio.src = '';
 
-            if (recorder)
-                recorder.stopRecording(function(url) {
-                  console.log("Audio is recording url " + url);
-                    audio.src = url;
-                    audio.muted = false;
-                    audio.play();
+          if (recorder)
+            recorder.stopRecording(function(url) {
+              console.log("Audio is recording url " + url);
+              audio.src = url;
+              audio.muted = false;
+              audio.play();
 
-                    document.getElementById('audio-url-preview').innerHTML = '<a href="' + url + '" target="_blank">Recorded Audio URL</a>';
-                });
+              document.getElementById('audio-url-preview').innerHTML = '<a href="' + url + '" target="_blank"></a>';
+              //socket.emit('sonCapture', {id: sessionId, name: app.session, fileName: sessionId + '.wav', type: 'audio/wav', dataURL: url.audio});
+            });
         };
         
         pauseResumeAudio.onclick = function() {
