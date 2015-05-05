@@ -34,6 +34,13 @@ button{
 	background: none;
 }
 
+.demi {
+	width:49%;
+	display: inline-block;
+	vertical-align: top;
+}
+
+
 /* CAPTURE PAGE
 ---------------------------------*/
 .container {
@@ -53,6 +60,9 @@ button{
 		// margin:0px auto 20px auto;
 		width:45px;
 		display: inline-block;
+		float: right;	
+	}
+	.btn-right{
 		float: right;	
 	}
 }
@@ -95,7 +105,7 @@ button{
 	.capture{
 		width:100%;
 		&>div{
-			width:20%;
+			width:80px;
 			margin:0px auto 20px auto;
 		}
 		button{
@@ -110,6 +120,18 @@ button{
 				#stop-btn{
 					display: none;
 				}
+			}
+		}
+		.stopmotion-capture{
+			width: 160px;
+			button {
+				display: inline-block;
+			}
+			#capture-sm{
+				display:none;
+			}
+			#stop-sm{
+				display: none;
 			}
 		}
 	}
@@ -128,18 +150,16 @@ button{
 
 	#camera-preview {
 		display: none; 
-		width: 80%;
-		position: absolute;
-		top:0px;
+		width: 100%;
 	}
 }
 
-.video, .screenshot {
+.video-view, .screenshot {
 	width: 80%;
 	margin:50px auto 20px auto;
 }
 
-.video video, .screenshot canvas{
+.video-view video, .screenshot canvas{
 	width: 100%;
 	background-color: @grisclair;
 }
@@ -182,8 +202,75 @@ button{
 	}
 	.valid {
 		display: inline-block;
-		float: right;
+		width: 60px;
+		// float: right;
 		margin-top: -10px;
+	}
+	.clear {
+		display: inline-block;
+		width: 60px;
+		// 	float: right;
+		margin-top: -10px;
+	}
+}
+
+// BIBLI PAGE ------
+.container-bibli {
+	width:100%;
+	margin: auto;
+	//font-family: 'share', sans-serif ; 
+	.buffer {
+		background-color:#e5e5e5;
+		.buffer-header{
+			background-color: #cecece;
+			h2{
+				margin: 0px;
+				padding: 20px 30px;
+				text-align: center;
+			}
+		}
+		ul{
+			height: 750px;
+			overflow-y: scroll;
+			padding: 40px 30px 30px 20px;
+			li{
+				list-style: none;
+				width: 32%;
+				// height: 215px;
+				display: inline-block;
+				vertical-align: top;
+				margin: 0px 10px 10px 0px;
+				&.images-bibli{
+					img{
+						border: 5px solid blue;
+					}
+				}
+				&.videos-bibli{
+					video{
+						width: 100%;
+						border: 5px solid green;
+					}	
+				}
+				&.audios-bibli{
+					border: 5px solid red;
+				}
+			}
+		}
+	}
+	.montage {
+		height: 860px;
+		overflow-y: scroll;
+		input{
+			width: 100%;
+			border: none;
+			text-align: center;
+			font-size: 30px;
+		}
+		.block-content{
+			width: 100%;
+			height: 300px;
+			border-bottom: 4px dashed #CECECE;
+		}
 	}
 }
 

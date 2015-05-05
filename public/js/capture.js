@@ -38,6 +38,8 @@ jQuery(document).ready(function($) {
 
   function events(){
     $('#photo').on('click', function(){
+      $('.screenshot .canvas-view').show();
+      $('.screenshot video').hide();
       $('.btn-choice').children().removeClass('active');
       $(this).addClass('active');
       $('.photo-capture').css('display', 'block');
@@ -54,6 +56,8 @@ jQuery(document).ready(function($) {
       $('.audio-capture').css('display','none');
     });
     $('#stopmotion').on('click', function(){
+      $('.screenshot .canvas-view').show();
+      $('.screenshot #camera-preview').hide();
       $('.btn-choice').children().removeClass('active');
       $(this).addClass('active');
       $('.photo-capture').css('display', 'none');
@@ -62,6 +66,7 @@ jQuery(document).ready(function($) {
       $('.audio-capture').css('display','none');
     });
     $('#audio').on('click', function(){
+      $('.screenshot #camera-preview').hide();
       $('.btn-choice').children().removeClass('active');
       $(this).addClass('active');
       $('.photo-capture').css('display', 'none');
@@ -70,6 +75,12 @@ jQuery(document).ready(function($) {
       $('.audio-capture').css('display','block');
       $('.screenshot #canvas').css('display', 'none');
       $('.right .son').css('display', 'block');
+    });
+    $('.btn-choice button').on('click', function(){
+      $('.btn-choice button').attr("disabled", false);
+      $(this).attr("disabled",true);
+      $(".form-meta.active").slideUp( "slow" ); 
+      $(".form-meta").removeClass('active')
     });
   }
 
@@ -322,6 +333,7 @@ jQuery(document).ready(function($) {
 
     // fonction qui prend des photos et qui les envoie au serveur
     function takepicture() {
+      $('.screenshot video').hide();
       canvas.width = width;
       canvas.height = height;
       canvas.getContext('2d').drawImage(video, 0, 0, width, height);
@@ -335,6 +347,8 @@ jQuery(document).ready(function($) {
         var legendeImage = $('textarea.legende').val();
         var tagsImage = $('input.tags').val();
         socket.emit('imageCapture', {data: data, id: sessionId, name: app.session, titre: titreImage, legende: legendeImage, tags: tagsImage});
+        $(".form-meta input").val("");
+        $(".form-meta textarea").val("");
         $(".form-meta.active").slideUp( "slow" ); 
         $(".form-meta").removeClass('active');
       });
@@ -361,6 +375,9 @@ jQuery(document).ready(function($) {
       // Event bouton stop motion
       // Crée un nouveau stop motion + ajoute des images dedans + transforme le stop motion en vidéo
       startsm.addEventListener('click', function(){
+        $("#start-sm").hide();
+        $("#capture-sm").show();
+        $("#stop-sm").show();
         socket.emit('newStopMotion', {id: sessionId, name: app.session});
         socket.on('newStopMotionDirectory', onStopMotionDirectory);
         function onStopMotionDirectory(dir){
@@ -374,7 +391,7 @@ jQuery(document).ready(function($) {
             socket.emit('StopMotion', {id: sessionId, name: app.session, dir: dir});
             $('.screenshot .canvas-view').hide();
             setTimeout(function() {
-              $('.screenshot').append("<video src='http://localhost:8080/" + app.session + "/stopmotion.mp4' autoplay='true' controls='true' loop='true' width='500' height='500'></video>");
+              $('.screenshot').append("<video src='http://localhost:8080/" + app.session + "/stopmotion.mp4' autoplay='true' controls='true' loop='true' width='620' height='465'></video>");
               $(".form-meta").slideDown( "slow" ); 
               $(".form-meta").addClass('active');
               $("#valider").off('click');
@@ -552,6 +569,21 @@ jQuery(document).ready(function($) {
                             }
                         };
                         socket.emit('audioVideo', {files: files, id: sessionId, name: app.session});
+                        $('.screenshot .canvas-view').hide();
+                        $(".form-meta").slideDown( "slow" ); 
+                        $(".form-meta").addClass('active');
+                        $("#valider").off('click');
+                        $("#valider").on('click', function(e){
+                          var titreVideo = $('input.titre').val();
+                          var legendeVideo = $('textarea.legende').val();
+                          var tagsVideo = $('input.tags').val();
+                          //Confirme l'enregistrement de la vidéo et envoie les meta données. 
+                          //socket.emit('audioVideoCapture', {files: files, id: sessionId, name: app.session, titre: titreVideo, legende: legendeVideo, tags: tagsVideo});
+                          $(".form-meta input").val("");
+                          $(".form-meta textarea").val("");
+                          $(".form-meta.active").slideUp( "slow" ); 
+                          $(".form-meta").removeClass('active');
+                        });
                         if (mediaStream) mediaStream.stop();
                     });
                 });

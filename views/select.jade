@@ -2,18 +2,28 @@ doctype html
 html
   head
     link(href='http://fonts.googleapis.com/css?family=Karla:400,400italic,700,700italic' rel='stylesheet' type='text/css')
-    link(rel='stylesheet', href='/css/style.css')
     link(rel='stylesheet', href='/css/bootstrap.css')
+    link(rel='stylesheet', href='/css/style.css')
     title #{session} | #{title}
   body.feedback
-    h1 Session de #{session}
-    a(href="/select/#{session}/capture") Prendre une photo
+    header.header
+      a(href='/')
+        h1 DoDOC | #{session}
+      a(href="/select/#{session}/capture" class="capture-page btn-right") Prendre une photo
 
-    div.montage
+    div.container-bibli
 
-    div.buffer
+      div.buffer.demi
+        div.buffer-header 
+          h2 Bibliothèque de médias
         ul
         //- img(src="http://localhost:8080/coucou/1421235653853.jpg")
+
+      div.montage.demi 
+        div.montage-content
+          div.montage-title
+            input(type="text" value="Big Titre")
+          div.block-content
 
     //- scripts
     script(src='/socket.io/socket.io.js')

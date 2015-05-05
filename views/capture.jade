@@ -9,9 +9,9 @@ html
   header.header
     a(href='/')
       h1 DoDOC | #{session}
-    div.btn-bibli
-      a(href='/select/sarah')
-      img(src='/images/icones-01.svg')
+    a(href='/select/#{session}')
+      div.btn-bibli
+        img(src='/images/icones-01.svg')
 
   div.container
 
@@ -23,7 +23,7 @@ html
         button#audio Sons
 
     div.left
-      div.video
+      div.video-view
         video(id="video" autoplay)
 
       div.capture
@@ -38,9 +38,12 @@ html
               img(src="/images/stop.svg")
           span#elasped-time
         div.stopmotion-capture
-          button#start-sm Start a new stop motion
-          button#capture-sm Capture stop motion
-          button#stop-sm Visualiser
+          button#start-sm
+            img(src="/images/save.svg")
+          button#capture-sm
+            img(src="/images/save.svg")
+          button#stop-sm
+            img(src="/images/stop.svg")
         div.audio-capture
           button#start-recording Start Recording
           button(id ="pause-recording" disabled) Pause Recording
@@ -54,6 +57,9 @@ html
         div.valid
           button#valider
             img(src="/images/enregistre.svg")
+        div.clear
+          button#clear
+            img(src='/images/clear.svg')
       div.screenshot
         canvas#canvas.canvas-view
         video(id="camera-preview" autoplay controls loop)

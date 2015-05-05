@@ -15,6 +15,8 @@ var uploadDir = '/uploads';
 module.exports = function(app, io){
 
 	console.log("main module initialized");
+
+	// VARIABLES
 	var sessions_p = "sessions/";
 	var session_list = [];
 	currentDate = Date.now();
@@ -30,6 +32,7 @@ module.exports = function(app, io){
 		socket.on("stopmotionCapture", onStopMotionCapture);
 		socket.on("videoCapture", onNewVideo);
 		socket.on("audioVideo", onNewAudioVideo);
+		//socket.on("audioVideoCapture", onNewAudioVideoCapture);
 		// socket.on("sonCapture", onNewSon);
 		//socket.on("saveVideo", SaveVideo);
 	});
@@ -45,6 +48,31 @@ module.exports = function(app, io){
 		listImages(req);
 	}
 
+	//Ajoute le dossier de la session + l'ajouter à la liste des sessions
+	function addNewSession(session) {
+    var sessionPath = 'sessions/'+session.name;
+		fs.ensureDirSync(sessionPath);
+
+		var jsonFile = 'sessions/' + session.name + '/' +session.name+'.json';
+		var objectJson = {"files": {"images":[], "videos":[], "stopmotion":[], "audio":[]}};
+		var jsonString = JSON.stringify(objectJson);
+		fs.appendFile(jsonFile, jsonString, function(err) {
+      if(err) {
+          console.log(err);
+      } else {
+          console.log("The file was saved!");
+      }
+    });
+
+
+		// console.log(session.name);
+		// session_list.push(session.name);
+		// var fileName = 'sessions/sessions.json';
+		// fs.writeFile(fileName, JSON.stringify(session_list), function (err){ 
+  	//          console.log(err);
+		// });
+	}
+
 	//ajoute les images au dossier de session
 	function onNewImage(req) {
 		var imageBuffer = decodeBase64Image(req.data);
@@ -54,60 +82,65 @@ module.exports = function(app, io){
 			console.log(err);
 		});
 		
-		filetext = 'sessions/' + req.name + '/' +req.name+'.json';
-		var objectJson = {"images":[{ "name" : currentDate, "titre" : req.titre, "légende" : req.legende, "tags" : req.tags}]};
-		if(!fs.existsSync(filetext)){
-			jsonString = JSON.stringify(objectJson);
-			fs.appendFile(filetext, jsonString, function(err) {
-        if(err) {
-            console.log(err);
-        } else {
-            console.log("The file was saved!");
-        }
-	    });
-		}
-		else {
-			jsonAdd = [{ "name" : currentDate, "titre" : req.titre, "légende" : req.legende, "tags" : req.tags}];
-			objectJson["images"] = jsonAdd;
-			fs.appendFile(filetext, JSON.stringify(objectJson["images"]), function(err) {
-        if(err) {
-            console.log(err);
-        } else {
-            console.log("The file was saved!");
-        }
-	    });
-		}
-		
-		// var filemeta = filename + '.txt';
-		// console.log(req.legende + " " + req.tags);
-		// fs.writeFile(filemeta, JSON.stringify('{titre: ' + req.titre + '}{légende: '+ req.legende + '}{tags: ' + req.tags +'}' ), function (err){ // Écrire dans les notes + timestamp + user dans un fichier json
-  //           console.log(err);
-  //       });
+		var jsonFile = 'sessions/' + req.name + '/' +req.name+'.json';
+		var data = fs.readFileSync(jsonFile,"UTF-8");
+		var jsonObj = JSON.parse(data);
+		var jsonAdd = { "name" : currentDate, "titre" : req.titre, "légende" : req.legende, "tags" : req.tags};
+		jsonObj["files"]["images"].push(jsonAdd);
+		fs.writeFile(jsonFile, JSON.stringify(jsonObj), function(err) {
+      if(err) {
+          console.log(err);
+      } else {
+          console.log("The file was saved!");
+      }
+    });
 	}
 
 	//Liste les images sur la page select
 	function listImages(req){
+		//read json file to send data
+		var jsonFile = 'sessions/' + req.name + '/' +req.name+'.json';
+		var data = fs.readFileSync(jsonFile,"UTF-8");
+		var jsonObj = JSON.parse(data);
+
 		var dir = "sessions/" + req.name ;
-		fs.readdir( dir, function (err, files) {
-			if (err)
-			throw err;
-			for (var index in files) {
-				files.splice(index, 1)
-				io.sockets.emit('listImages', files);
-			}
+		fs.readdir(dir, function(err, files) {
+			var media = [];
+			if (err) return;
+			files.forEach(function(f) {
+				//console.log('Files: ' + f);
+				media.push(f);
+			});
+			io.sockets.emit('listImages', media,jsonObj);
+			// for (var i = 0; i < media.length; i++) {
+   //  		//console.log(media[i]);
+   //  		var extension = path.extname(media[i]);
+   //  		//var ID = media[i].replace(".jpg", "");
+			// 	//console.log(extension);
+			// 	if(extension == ".jpg"){
+			// 		// for(var key in jsonObj["files"]["images"]) {
+			// 		// 	console.log(jsonObj["files"]["images"][key]['name']);	
+			// 		// }
+			// 		io.sockets.emit('listImages', media[i], jsonObj);
+			// 	}
+			// 	if(extension == ".webm"){
+			// 		io.sockets.emit('listVideos', media[i]);
+			// 	}
+			// 	if(extension == ".wav"){
+			// 		io.sockets.emit('listAudio', media[i]);
+			// 	}
+			// }
 		});
-	}
-
-	//Ajoute le dossier de la session + l'ajouter à la liste des sessions
-	function addNewSession(session) {
-    var sessionPath = 'sessions/'+session.name;
-		fs.ensureDirSync(sessionPath);
-
-		// console.log(session.name);
-		// session_list.push(session.name);
-		// var fileName = 'sessions/sessions.json';
-		// fs.writeFile(fileName, JSON.stringify(session_list), function (err){ 
-  	//          console.log(err);
+		// fs.readdir(dir, function (err, files) {
+		// 	if (err)
+		// 	throw err;
+		// 	for (var index in files) {
+		// 		// console.log(files);
+		// 		// files.splice(index, 1);
+		// 		var extension = path.extname(files);
+		// 		console.log(extension);
+		// 		io.sockets.emit('listImages', files);
+		// 	}
 		// });
 	}
 
@@ -177,7 +210,7 @@ module.exports = function(app, io){
 
 	//Transforme les images en vidéos. 
 	function onStopMotion(req) {
-		console.log(req.dir);
+		//console.log(req.dir);
 		var videoPath = 'sessions/' + req.name + '/stopmotion.mp4';
 		if(videoPath){
 			fs.remove(videoPath);
@@ -200,7 +233,7 @@ module.exports = function(app, io){
 	function onStopMotionCapture(req){
 		currentDate = Date.now();
 		//SAVE VIDEO
-		var videoPath = 'sessions/' + req.name + '/' + req.titre + '.mp4';
+		var videoPath = 'sessions/' + req.name + '/' + currentDate + '.mp4';
 		if('sessions/' + req.name + '/stopmotion.mp4'){
 			fs.remove('sessions/' + req.name + '/stopmotion.mp4');
 		}
@@ -219,33 +252,28 @@ module.exports = function(app, io){
 		  .save(videoPath);
 
 
-		filetext = 'sessions/' + req.name + '/' +req.name+'.json';
-		var objectJson = {"videos":[{ "name" : currentDate, "titre" : req.titre, "légende" : req.legende, "tags" : req.tags}]};
-		if(!fs.existsSync(filetext)){
-			jsonString = JSON.stringify(objectJson);
-			fs.appendFile(filetext, jsonString, function(err) {
-        if(err) {
-            console.log(err);
-        } else {
-            console.log("The file was saved!");
-        }
-	    });
-		}
-		else {
-			jsonAdd = [{ "name" : currentDate, "titre" : req.titre, "légende" : req.legende, "tags" : req.tags}];
-			objectJson["videos"] = jsonAdd;
-			fs.appendFile(filetext, JSON.stringify(objectJson["videos"]), function(err) {
-	        if(err) {
-	            console.log(err);
-	        } else {
-	            console.log("The file was saved!");
-	        }
-	    });
-		}
+		var jsonFile = 'sessions/' + req.name + '/' +req.name+'.json';
+		var data = fs.readFileSync(jsonFile,"UTF-8");
+		var jsonObj = JSON.parse(data);
+		var jsonAdd = { "name" : currentDate, "titre" : req.titre, "légende" : req.legende, "tags" : req.tags};
+		jsonObj["files"]["stopmotion"].push(jsonAdd);
+		fs.writeFile(jsonFile, JSON.stringify(jsonObj), function(err) {
+      if(err) {
+          console.log(err);
+      } else {
+          console.log("The file was saved!");
+      }
+    });
 	}
 
 	function onNewAudioVideo(data){
     var fileName = currentDate;
+    var VideoDirectory = 'sessions/' + data.name + '/audiovideo';
+    // console.log(VideoDirectory);
+		if(VideoDirectory){
+			fs.removeSync(VideoDirectory);
+		}
+		fs.ensureDirSync(VideoDirectory);
     io.sockets.emit('ffmpeg-output', 0);
     writeToDisk(data.files.audio.dataURL, fileName + '.wav', data.name);
 
@@ -276,7 +304,7 @@ module.exports = function(app, io){
     fileBuffer = new Buffer(dataURL, 'base64');
     fs.writeFileSync(filePath, fileBuffer);
 
-    console.log('filePath', filePath);
+    // console.log('filePath', filePath);
 	}
 
 	function merge(fileName, session) {
@@ -301,8 +329,8 @@ module.exports = function(app, io){
 	            console.log('Merging finished !');
 
 	            // removing audio/video files
-	            fs.unlink(audioFile);
-	            fs.unlink(videoFile);
+	            //fs.unlink(audioFile);
+	            //fs.unlink(videoFile);
 	        })
 	        .saveToFile(mergedFile);
 	}
