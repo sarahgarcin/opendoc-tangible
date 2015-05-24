@@ -117,6 +117,9 @@ button {
 .left .capture .stopmotion-capture #stop-sm {
   display: none;
 }
+.left .capture .audio-capture #stop-recording {
+  display: none;
+}
 .right {
   width: 47%;
   display: inline-block;
