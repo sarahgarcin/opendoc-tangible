@@ -38,6 +38,6 @@ Thumbs.db
 
 # Content Files #
 ###############
-/archive
-/session/*
-/node_modules
+archive
+session/*
+node_modules
