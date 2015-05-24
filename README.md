@@ -31,6 +31,9 @@ You can install a pre-built version of node.js via the  [downloads](https://node
 You can install ffmpeg via the [downloads](https://www.ffmpeg.org/download.html) page.
 
 ###Run DoDoc
+Run the server in the terminal
+```node server.js```
+
 Go to browser and go to the url
 http://localhost:8080 
 
