@@ -15,8 +15,6 @@ jQuery(document).ready(function($) {
 
   // fonctions
   fluxWebcam();
-  //captureVideo();
-  //videoCapture();
   audioCapture();
   events();
 
@@ -84,204 +82,6 @@ jQuery(document).ready(function($) {
     });
   }
 
-  // Capture des videos en format webm
-  function videoCapture(){
-    $('#stop-btn').on('click', function(){
-      $(".form-meta").slideDown( "slow" ); 
-      $(".form-meta").addClass('active');
-    });
-
-    (function(exports) {
-      exports.URL = exports.URL || exports.webkitURL;
-      exports.requestAnimationFrame = exports.requestAnimationFrame ||
-      exports.webkitRequestAnimationFrame || exports.mozRequestAnimationFrame ||
-      exports.msRequestAnimationFrame || exports.oRequestAnimationFrame;
-      exports.cancelAnimationFrame = exports.cancelAnimationFrame ||
-      exports.webkitCancelAnimationFrame || exports.mozCancelAnimationFrame ||
-      exports.msCancelAnimationFrame || exports.oCancelAnimationFrame;
-
-
-      navigator.getUserMedia = navigator.getUserMedia ||
-      navigator.webkitGetUserMedia || navigator.mozGetUserMedia ||
-      navigator.msGetUserMedia;
-
-      var ORIGINAL_DOC_TITLE = document.title;
-      var video = $('#video');
-      var canvas = document.createElement('canvas'); // offscreen canvas.
-      var rafId = null;
-      var startTime = null;
-      var endTime = null;
-      var frames = [];
-
-
-      function $(selector) {
-        return document.querySelector(selector) || null;
-      }
-
-      function toggleActivateRecordButton() {
-        var b = $('#record-btn');
-        b.textContent = b.disabled ? 'Record' : 'Recording...';
-        b.classList.toggle('recording');
-        b.disabled = !b.disabled;
-      }
-
-      function turnOnCamera(e) {
-        // e.target.disabled = true;
-        $('#record-btn').disabled = false;
-
-        video.controls = false;
-
-        var finishVideoSetup_ = function() {
-          // Note: video.onloadedmetadata doesn't fire in Chrome when using getUserMedia so
-          // we have to use setTimeout. See crbug.com/110938.
-          setTimeout(function() {
-            video.width = 520;//video.clientWidth;
-            video.height = 390;// video.clientHeight;
-            // Canvas is 1/2 for performance. Otherwise, getImageData() readback is
-            // awful 100ms+ as 640x480.
-            canvas.width = video.width;
-            canvas.height = video.height;
-          }, 1000);
-        };
-
-        navigator.getUserMedia({video: true, audio: true}, function(stream) {
-          video.src = window.URL.createObjectURL(stream);
-          finishVideoSetup_();
-        }, function(e) {
-          alert('Fine, you get a movie instead of your beautiful face ;)');
-
-          video.src = 'Chrome_ImF.mp4';
-          finishVideoSetup_();
-        });
-      };
-
-      function record() {
-        var elapsedTime = $('#elasped-time');
-        var ctx = canvas.getContext('2d');
-        var CANVAS_HEIGHT = canvas.height;
-        var CANVAS_WIDTH = canvas.width;
-
-        frames = []; // clear existing frames;
-        startTime = Date.now();
-
-        toggleActivateRecordButton();
-        $('#stop-btn').disabled = false;
-
-        function drawVideoFrame_(time) {
-          rafId = requestAnimationFrame(drawVideoFrame_);
-          ctx.drawImage(video, 0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
-          var url = canvas.toDataURL('image/webp', 1); // image/jpeg is way faster :(
-          frames.push(url);
-        };
-
-        rafId = requestAnimationFrame(drawVideoFrame_);
-      };
-
-      function stop() {
-        cancelAnimationFrame(rafId);
-        endTime = Date.now();
-        $('#stop-btn').disabled = true;
-        document.title = ORIGINAL_DOC_TITLE;
-        toggleActivateRecordButton();
-        console.log('frames captured: ' + frames.length + ' => ' +
-                    ((endTime - startTime) / 1000) + 's video');
-        embedVideoPreview();
-      };
-
-      function embedVideoPreview(opt_url) {
-        $('.screenshot .canvas-view').style.display = "none";
-        var url = opt_url || null;
-        var video = $('.screenshot video') || null;
-        var downloadLink = $('.screenshot a[download]') || null;
-
-        if (!video) {
-          video = document.createElement('video');
-          video.autoplay = true;
-          video.controls = true;
-          video.loop = true;
-          video.style.width = canvas.width + 'px';
-          video.style.height = canvas.height + 'px';
-          $('.screenshot').appendChild(video);
-          
-          downloadLink = document.createElement('a');
-          downloadLink.download = 'capture.webm';
-          downloadLink.textContent = '[ download video ]';
-          downloadLink.title = 'Download your .webm video';
-          var p = document.createElement('p');
-          p.appendChild(downloadLink);
-
-          $('.screenshot').appendChild(p);
-
-        } else {
-          window.URL.revokeObjectURL(video.src);
-        }
-
-        if (!url) {
-          var webmBlob = Whammy.fromImageArray(frames, 1000 / 60);
-          url = window.URL.createObjectURL(webmBlob);
-        }
-
-        video.src = url;
-        downloadLink.href = url;
-        socket.emit('videoCapture', {url: url, id: sessionId, name: app.session});
-
-      }
-
-      function initEvents() {
-        $('#video-btn').addEventListener('click', turnOnCamera);
-        $('#record-btn').addEventListener('click', record);
-        $('#stop-btn').addEventListener('click', stop);
-      }
-
-      initEvents();
-
-      exports.$ = $;
-
-    })(window);
-  }
-  
-  //Fonction pour capturer une vidéo à partir de photos encoder en base64
-  //fonction désactivée
-  function captureVideo(){
-    var image = document.getElementById('photo');
-    var video = document.getElementById('video');
-    var record = document.getElementById('record-btn');
-    var play = document.getElementById('play-btn');
-    var reset = document.getElementById('reset');
-    var save = document.getElementById('save-video');
-    var recorder;
-
-    getUserMedia(function (err, stream) {
-      if (err) return console.log(err);
-      attachMediaStream(stream, video, {muted: true});
-      recorder = window.recorder = new VideoRecorder(video);
-    });
-
-    record.addEventListener('click', function () {
-      if (recorder.running) {
-        recorder.stop();
-        this.innerHTML = 'Record';
-      } else {
-        recorder.record();
-        this.innerHTML = 'Pause';
-      }
-    });
-
-    play.addEventListener('click', function () {
-      fauxplay(recorder.data, image, {loop: true, duration: recorder.runningTime})
-    });
-
-    save.addEventListener('click', function () {
-      console.log(recorder.data);
-      socket.emit('saveVideo', {data: recorder.data, id: sessionId, name: app.session});
-    });
-
-    reset.addEventListener('click', function () {
-      recorder.stop();
-      recorder.reset();
-    });
-  }
-
   // Prend des photos et des stop motion
   function fluxWebcam(){
     //définition des variables 
@@ -333,25 +133,12 @@ jQuery(document).ready(function($) {
 
     // fonction qui prend des photos et qui les envoie au serveur
     function takepicture() {
-      $('.screenshot video').hide();
       canvas.width = width;
       canvas.height = height;
       canvas.getContext('2d').drawImage(video, 0, 0, width, height);
       var data = canvas.toDataURL('image/png');
       photo.setAttribute('src', data);
-      $(".form-meta").slideDown( "slow" ); 
-      $(".form-meta").addClass('active');
-      $("#valider").off('click');
-      $("#valider").on('click', function(e){
-        var titreImage = $('input.titre').val();
-        var legendeImage = $('textarea.legende').val();
-        var tagsImage = $('input.tags').val();
-        socket.emit('imageCapture', {data: data, id: sessionId, name: app.session, titre: titreImage, legende: legendeImage, tags: tagsImage});
-        $(".form-meta input").val("");
-        $(".form-meta textarea").val("");
-        $(".form-meta.active").slideUp( "slow" ); 
-        $(".form-meta").removeClass('active');
-      });
+      animateWindows(data, "imageCapture");      
     }
 
     // fonction qui prend des photos pour le stop motion et qui les envoie au serveur
@@ -391,7 +178,7 @@ jQuery(document).ready(function($) {
             socket.emit('StopMotion', {id: sessionId, name: app.session, dir: dir});
             $('.screenshot .canvas-view').hide();
             setTimeout(function() {
-              $('.screenshot').append("<video src='http://localhost:8080/" + app.session + "/stopmotion.mp4' autoplay='true' controls='true' loop='true' width='620' height='465'></video>");
+              $('.screenshot').append("<video src='http://localhost:8080/" + app.session + "/stopmotion.mp4' autoplay='true' controls='true' loop='true' width='620' height='465'></video>"); 
               $(".form-meta").slideDown( "slow" ); 
               $(".form-meta").addClass('active');
               $("#valider").off('click');
@@ -467,121 +254,12 @@ jQuery(document).ready(function($) {
                 cameraPreview.play();
                 // $("#son").attr('src', url);
                 //document.getElementById('audio-url-preview').innerHTML = '<a href="' + url + '" target="_blank"></a>';
-                $('.screenshot .canvas-view').hide();
-                $(".form-meta").slideDown( "slow" ); 
-                $(".form-meta").addClass('active');
-                $("#valider").off('click');
-                $("#valider").on('click', function(e){
-                  var titre = $('input.titre').val();
-                  var legende = $('textarea.legende').val();
-                  var tags = $('input.tags').val();
-                  //Confirme l'enregistrement de la vidéo et envoie les meta données. 
-                  socket.emit('audioCapture', {files:files, id: sessionId, name: app.session, titre: titre, legende: legende, tags: tags});
-                  $(".form-meta input").val("");
-                  $(".form-meta textarea").val("");
-                  $(".form-meta.active").slideUp( "slow" ); 
-                  $(".form-meta").removeClass('active');
-                });
+                animateWindows(files, "audioCapture");
                 if (mediaStream) mediaStream.stop();
             });
         });
     };
-  } 
-
-  // function audioCapture(){
-  //   (function() {
-  //     var params = {},
-  //         r = /([^&=]+)=?([^&]*)/g;
-
-  //     function d(s) {
-  //         return decodeURIComponent(s.replace(/\+/g, ' '));
-  //     }
-
-  //     var match, search = window.location.search;
-  //     while (match = r.exec(search.substring(1)))
-  //         params[d(match[1])] = d(match[2]);
-
-  //     window.params = params;
-  //   })();
-  //   var recordAudio = document.getElementById('start-recording'),
-  //       stopRecordingAudio = document.getElementById('stop-recording'),
-  //       //pauseResumeAudio = document.getElementById('pause-recording'),
-  //       audio = document.getElementById('son');
-
-  //       var audioConstraints = {
-  //           audio: true,
-  //           video: false
-  //       };
-
-  //       var audioStream;
-  //       var recorder;
-
-  //       recordAudio.onclick = function() {
-  //         stopRecordingAudio.disabled = false;
-  //         recordAudio.style.display = "none";
-  //         stopRecordingAudio.style.display = "block";
-  //         if (!audioStream)
-  //           navigator.getUserMedia(audioConstraints, function(stream) {
-  //               if (window.IsChrome) stream = new window.MediaStream(stream.getAudioTracks());
-  //               audioStream = stream;
-
-  //               // "audio" is a default type
-  //               recorder = window.RecordRTC(stream, {
-  //                   type: 'audio',
-  //                   bufferSize: typeof params.bufferSize == 'undefined' ? 16384 : params.bufferSize,
-  //                   sampleRate: typeof params.sampleRate == 'undefined' ? 44100 : params.sampleRate,
-  //                   leftChannel: params.leftChannel || false,
-  //                   disableLogs: params.disableLogs || false,
-  //               });
-  //               recorder.startRecording();
-  //           }, function() {});
-  //           else {
-  //               audio.src = URL.createObjectURL(audioStream);
-  //               audio.muted = true;
-  //               audio.play();
-  //               if (recorder) recorder.startRecording();
-  //           }
-
-  //           window.isAudio = true;
-
-  //           this.disabled = true;
-  //           stopRecordingAudio.disabled = false;
-  //           //pauseResumeAudio.disabled = false;
-  //       };
-
-  //       stopRecordingAudio.onclick = function() {
-  //         console.log(recorder);
-  //         this.disabled = true;
-  //         recordAudio.style.display = "block";
-  //         this.style.display = "none";
-  //         recordAudio.disabled = false;
-  //         audio.src = '';
-
-  //         if (recorder)
-  //           recorder.stopRecording(function(url) {
-  //             console.log("Audio is recording url " + url);
-  //             audio.src = url;
-  //             audio.muted = false;
-  //             audio.play();
-
-  //             document.getElementById('audio-url-preview').innerHTML = '<a href="' + url + '" target="_blank"></a>';
-  //             //socket.emit('sonCapture', {id: sessionId, name: app.session, fileName: sessionId + '.wav', type: 'audio/wav', dataURL: url.audio});
-  //           });
-  //       };
-        
-  //       // pauseResumeAudio.onclick = function() {
-  //       //     if(!recorder) return;
-            
-  //       //     if(this.innerHTML === 'Pause') {
-  //       //         this.innerHTML = 'Resume';
-  //       //         recorder.pauseRecording();
-  //       //         return;
-  //       //     }
-            
-  //       //     this.innerHTML = 'Pause';
-  //       //     recorder.resumeRecording();
-  //       // };
-  // }
+  }  
 
   //Capture le flux audio et video
   function audioVideo(){
@@ -711,5 +389,36 @@ jQuery(document).ready(function($) {
         alert(error);
     });
   } 
+
+  //animation des fenêtres à la capture
+  function animateWindows(data, capture){
+    //$('.screenshot .canvas-view').hide();
+    $(".right").css('display', 'block');
+    $('.left').animate({'left':'7%'}, 'slow');
+    $('.right').animate({'left':'52%'}, 'slow', function(){
+      $('.right').css('height', "auto");
+      $(".form-meta").slideDown( "slow" ); 
+      $(".form-meta").addClass('active');
+      $("#valider").off('click');
+      $("#valider").on('click', function(e){
+        var titre = $('input.titre').val();
+        var legende = $('textarea.legende').val();
+        var tags = $('input.tags').val();
+        socket.emit(capture, {data: data, id: sessionId, name: app.session, titre: titre, legende: legende, tags: tags});
+        $(".form-meta input").val("");
+        $(".form-meta textarea").val("");
+        $(".form-meta.active").slideUp( "slow", function(){ 
+          $(".form-meta").removeClass('active');
+          $('.left').animate({'left':'30%'}, 'slow');
+          $('.right').css("z-index", 3).animate({'width':"0px", 'top':'0px', 'left':'95%'}, 500, function(){
+            $(this).css('display', 'none');
+            $(".count-add-media").animate({'opacity': 1}, 500, function(){
+              $(this).fadeOut(700);
+            });
+          });
+        });
+      });
+    });
+  }
   
 });

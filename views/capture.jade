@@ -12,12 +12,13 @@ html
     a(href='/select/#{session}')
       div.btn-bibli
         img(src='/images/icones-01.svg')
+        .count-add-media +1
 
   div.container
 
     div.media-choice
       div.btn-choice
-        button#photo Images
+        button#photo.active Images
         button#video-btn Vidéos
         button#stopmotion Stop motion
         button#audio Sons

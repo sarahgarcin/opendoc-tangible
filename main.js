@@ -76,6 +76,7 @@ module.exports = function(app, io){
 
 	//ajoute les images au dossier de session
 	function onNewImage(req) {
+		console.log('test');
 		var imageBuffer = decodeBase64Image(req.data);
 		currentDate = Date.now();
 		filename = 'sessions/' + req.name + '/' + currentDate + '.jpg';
@@ -319,7 +320,7 @@ module.exports = function(app, io){
 
 	function onNewAudioVideoCapture(req){
 		var VideoDirectory = 'sessions/' + req.name + '/audiovideo/';
-		var file = req.file.substring(0, 13);
+		var file = req.data.substring(0, 13);
 		//move wav file
     var wav = fs.createReadStream(VideoDirectory + file +".wav");
 		var newWave = fs.createWriteStream('sessions/' + req.name + '/' + file + ".wav" );
@@ -387,7 +388,7 @@ module.exports = function(app, io){
         fileID += 1;
     }
 
-    dataURL = req.files.audio.dataURL.split(',').pop();
+    dataURL = req.data.audio.dataURL.split(',').pop();
     fileBuffer = new Buffer(dataURL, 'base64');
     fs.writeFileSync(filePath, fileBuffer);
 
