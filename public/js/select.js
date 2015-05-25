@@ -31,6 +31,7 @@ jQuery(document).ready(function($) {
 		for (var i = 0; i < array.length; i++) {    	
     	var extension = array[i].split('.').pop();
     	var identifiant =  array[i].replace("." + extension, "");
+    	console.log(identifiant);
 			if(extension == "jpg"){
 				$('.buffer ul').append("<li class='images-bibli' id='"+ identifiant+"'' ><img src='http://localhost:8080/" + app.session + "/" + array[i] + "'></li>");
 			}
@@ -52,6 +53,10 @@ jQuery(document).ready(function($) {
 		  //console.log(i + "-" + val["titre"]);
 		});
 		$.each(json["files"]["videos"], function(i, val) {
+			$("#" + val['name']).append("<h3>" +val['titre'] + "</h3>");
+		  //console.log(i + "-" + val["titre"]);
+		});
+		$.each(json["files"]["audio"], function(i, val) {
 			$("#" + val['name']).append("<h3>" +val['titre'] + "</h3>");
 		  //console.log(i + "-" + val["titre"]);
 		});
