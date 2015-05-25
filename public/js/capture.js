@@ -410,11 +410,9 @@ jQuery(document).ready(function($) {
         $(".form-meta.active").slideUp( "slow", function(){ 
           $(".form-meta").removeClass('active');
           $('.left').animate({'left':'30%'}, 'slow');
-          $('.right').css("z-index", 3).animate({'width':"0px", 'top':'0px', 'left':'95%'}, 500, function(){
-            $(this).css('display', 'none');
-            $(".count-add-media").animate({'opacity': 1}, 500, function(){
-              $(this).fadeOut(700);
-            });
+          $('.right').css("z-index", 3).animate({'width':"200px", 'top':'60px', 'left':'87%', 'opacity': 0}, 500, function(){
+            $(this).css({"z-index": -1, "width":"800px", 'top':"200px", 'left':'30%', 'opacity':1});
+            $(".count-add-media").animate({'opacity': 1}, 700, function(){$(this).fadeOut(700);});
           });
         });
       });
