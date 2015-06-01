@@ -320,7 +320,7 @@ module.exports = function(app, io){
 
 	function onNewAudioVideoCapture(req){
 		var VideoDirectory = 'sessions/' + req.name + '/audiovideo/';
-		var file = req.data.substring(0, 13);
+		var file = req.file.substring(0, 13);
 		//move wav file
     var wav = fs.createReadStream(VideoDirectory + file +".wav");
 		var newWave = fs.createWriteStream('sessions/' + req.name + '/' + file + ".wav" );

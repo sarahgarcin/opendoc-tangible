@@ -43,6 +43,9 @@ jQuery(document).ready(function($) {
       $('.video-capture').css('display','none');
       $('.stopmotion-capture').css('display','none');
       $('.audio-capture').css('display','none');
+      $(".son").css("display", "none");
+      $('#video').show();
+      $('#canvas-audio').hide();
     });
     $('#video-btn').on('click', function(){
       $('.btn-choice').children().removeClass('active');
@@ -51,6 +54,9 @@ jQuery(document).ready(function($) {
       $('.video-capture').css('display','block');
       $('.stopmotion-capture').css('display','none');
       $('.audio-capture').css('display','none');
+      $(".son").css("display", "none");
+      $('#video').show();
+      $('#canvas-audio').hide();
       audioVideo();
     });
     $('#stopmotion').on('click', function(){
@@ -62,8 +68,11 @@ jQuery(document).ready(function($) {
       $('.video-capture').css('display','none');
       $('.stopmotion-capture').css('display','block');
       $('.audio-capture').css('display','none');
+      $(".son").css("display", "none");
+      $('#video').show();
+      $('#canvas-audio').hide();
     });
-    $('#audio').on('click', function(){
+    $('#audio').on('click', function(e){
       $('.screenshot #camera-preview').hide();
       $('.btn-choice').children().removeClass('active');
       $(this).addClass('active');
@@ -73,12 +82,19 @@ jQuery(document).ready(function($) {
       $('.audio-capture').css('display','block');
       $('.screenshot #canvas').css('display', 'none');
       $('.right .son').css('display', 'block');
+      $('#video').hide();
+      $('#canvas-audio').show();
+      createEqualizer();
     });
     $('.btn-choice button').on('click', function(){
       $('.btn-choice button').attr("disabled", false);
       $(this).attr("disabled",true);
       $(".form-meta.active").slideUp( "slow" ); 
-      $(".form-meta").removeClass('active')
+      $(".form-meta").removeClass('active');
+      if($('.screenshot .count-image')){
+        $('.screenshot .count-image').remove();
+      }
+      backAnimation();
     });
   }
 
@@ -164,21 +180,33 @@ jQuery(document).ready(function($) {
       startsm.addEventListener('click', function(){
         $("#start-sm").hide();
         $("#capture-sm").show();
-        $("#stop-sm").show();
+        $('.screenshot .canvas-view').show();
+        $(".right").css('display', 'block').addClass('active');
+        $('.left').animate({'left':'7%'}, 'slow');
+        $('.right').animate({'left':'52%'}, 'slow');
+        $('.screenshot').append('<p>Nouveau Stop Motion! Cliquez sur le bouton enregistrer pour commencer à prendre des photos</p>')
         socket.emit('newStopMotion', {id: sessionId, name: app.session});
         socket.on('newStopMotionDirectory', onStopMotionDirectory);
         function onStopMotionDirectory(dir){
           capturesm.addEventListener('click', function(ev){
+            $("#stop-sm").show();
+            $('.screenshot p').remove();
             countImage ++;
+            $(".screenshot").append("<p class='count-image'></p>");
+            $(".screenshot .count-image").text("Image n°" + countImage);
             takepictureMotion(dir, countImage);
             ev.preventDefault();
           }, false);
           stopsm.addEventListener('click', function(ev){
             countImage = 0;
+            $('.screenshot .count-image').remove();
             socket.emit('StopMotion', {id: sessionId, name: app.session, dir: dir});
             $('.screenshot .canvas-view').hide();
             setTimeout(function() {
-              $('.screenshot').append("<video src='http://localhost:8080/" + app.session + "/stopmotion.mp4' autoplay='true' controls='true' loop='true' width='620' height='465'></video>"); 
+              $('.right').css('height', "auto");
+              $('#camera-preview').attr('src', 'http://localhost:8080/' + app.session + '/stopmotion.mp4')
+              //$('.screenshot').append("<video class='stopmotion-preview' src='http://localhost:8080/" + app.session + "/stopmotion.mp4' autoplay='true' controls='true' loop='true' width='620' height='465'></video>"); 
+              $('#camera-preview').show();
               $(".form-meta").slideDown( "slow" ); 
               $(".form-meta").addClass('active');
               $("#valider").off('click');
@@ -187,10 +215,23 @@ jQuery(document).ready(function($) {
                 var legendeSM = $('textarea.legende').val();
                 var tagsSM = $('input.tags').val();
                 socket.emit('stopmotionCapture', {id: sessionId, name: app.session, titre: titreSM, legende: legendeSM, tags: tagsSM, dir: dir});
-                $(".form-meta.active").slideUp( "slow" ); 
-                $(".form-meta").removeClass('active');
+                $(".form-meta input").val("");
+                $(".form-meta textarea").val("");
+                $(".form-meta.active").slideUp( "slow", function(){ 
+                  $(".form-meta").removeClass('active');
+                  $('.left').animate({'left':'30%'}, 'slow');
+                  $('.right').css("z-index", 3).removeClass('active').animate({'width':"200px", 'top':'60px', 'left':'87%', 'opacity': 0}, 500, function(){
+                    $(this).css({"z-index": -1, "width":"800px", 'top':"200px", 'left':'30%', 'opacity':1});
+                    $(".count-add-media").animate({'opacity': 1}, 700, function(){$(this).fadeOut(700);});
+                  });
+                });
+                $("#start-sm").show();
+                $("#capture-sm").hide();
+                $("#stop-sm").hide();
+                canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height);
               });
             }, 1000);
+            $('.screenshot #camera-preview').hide();
             ev.preventDefault();
           }, false);
         }
@@ -211,6 +252,7 @@ jQuery(document).ready(function($) {
       startRecording.disabled = true;
       startRecording.style.display = "none";
       stopRecording.style.display = "block";
+
       navigator.getUserMedia({
           audio: true
       }, function(stream) {
@@ -230,7 +272,7 @@ jQuery(document).ready(function($) {
           alert(JSON.stringify(error));
       });
     };
-    stopRecording.onclick = function() {
+    stopRecording.onclick = function(e) {
         startRecording.disabled = false;
         stopRecording.disabled = true;
         startRecording.style.display = "block";
@@ -239,24 +281,24 @@ jQuery(document).ready(function($) {
 
         // stop audio recorder
         recordAudio.stopRecording(function(url) {
-            // get audio data-URL
-            recordAudio.getDataURL(function(audioDataURL) {
-                var files = {
-                    audio: {
-                        type: recordAudio.getBlob().type || 'audio/wav',
-                        dataURL: audioDataURL
-                    }
-                };
-                //socket.emit('audio', {files: files, id: sessionId, name: app.session});
-                console.log("Audio is recording url " + url);
-                cameraPreview.src = url;
-                cameraPreview.muted = false;
-                cameraPreview.play();
-                // $("#son").attr('src', url);
-                //document.getElementById('audio-url-preview').innerHTML = '<a href="' + url + '" target="_blank"></a>';
-                animateWindows(files, "audioCapture");
-                if (mediaStream) mediaStream.stop();
-            });
+          // get audio data-URL
+          recordAudio.getDataURL(function(audioDataURL) {
+            var files = {
+                audio: {
+                    type: recordAudio.getBlob().type || 'audio/wav',
+                    dataURL: audioDataURL
+                }
+            };
+            //socket.emit('audio', {files: files, id: sessionId, name: app.session});
+            console.log("Audio is recording url " + url);
+            cameraPreview.src = url;
+            cameraPreview.muted = false;
+            cameraPreview.play();
+            // $("#son").attr('src', url);
+            //document.getElementById('audio-url-preview').innerHTML = '<a href="' + url + '" target="_blank"></a>';
+            animateWindows(files, "audioCapture");
+            if (mediaStream) mediaStream.stop();
+        });
         });
     };
   }  
@@ -313,48 +355,53 @@ jQuery(document).ready(function($) {
         recordVideoSeparately && recordAudio.stopRecording(function() {
           // stop video recorder
           recordVideo.stopRecording(function() {
-              // get audio data-URL
-              recordAudio.getDataURL(function(audioDataURL) {
-                  // get video data-URL
-                  recordVideo.getDataURL(function(videoDataURL) {
-                      var files = {
-                          audio: {
-                              type: recordAudio.getBlob().type || 'audio/wav',
-                              dataURL: audioDataURL
-                          },
-                          video: {
-                              type: recordVideo.getBlob().type || 'video/webm',
-                              dataURL: videoDataURL
-                          }
-                      };
-                      socket.emit('audioVideo', {files: files, id: sessionId, name: app.session});
-                      $('.screenshot .canvas-view').hide();
-                      $(".form-meta").slideDown( "slow" ); 
-                      $(".form-meta").addClass('active');
-                      $("#valider").off('click');
-                      if (mediaStream) mediaStream.stop();
-                  });
+            // get audio data-URL
+            recordAudio.getDataURL(function(audioDataURL) {
+              // get video data-URL
+              recordVideo.getDataURL(function(videoDataURL) {
+                var files = {
+                    audio: {
+                        type: recordAudio.getBlob().type || 'audio/wav',
+                        dataURL: audioDataURL
+                    },
+                    video: {
+                        type: recordVideo.getBlob().type || 'video/webm',
+                        dataURL: videoDataURL
+                    }
+                };
+                socket.emit('audioVideo', {files: files, id: sessionId, name: app.session});
+                $('.screenshot .canvas-view').hide();
+                $(".right").css('display', 'block').addClass('active');
+                $('.left').animate({'left':'7%'}, 'slow');
+                $('.right').animate({'left':'52%'}, 'slow', function(){
+                  $('.right').css('height', "auto");
+                  $(".form-meta").slideDown( "slow" ); 
+                  $(".form-meta").addClass('active');
+                  $("#valider").off('click');
+                });
+                if (mediaStream) mediaStream.stop();
               });
-              cameraPreview.src = '';
-              cameraPreview.poster = 'http://localhost:8080/ajax-loader.gif';
+            });
+            cameraPreview.src = '';
+            cameraPreview.poster = 'http://localhost:8080/loading.gif';
           });
         });
         // if firefox or if you want to record only audio
         // stop audio recorder
         !recordVideoSeparately && recordAudio.stopRecording(function() {
-            // get audio data-URL
-            recordAudio.getDataURL(function(audioDataURL) {
-                var files = {
-                    audio: {
-                        type: recordAudio.getBlob().type || 'audio/wav',
-                        dataURL: audioDataURL
-                    }
-                };
-                socket.emit('audioVideo', {files: files, id: sessionId, name: app.session});
-                if (mediaStream) mediaStream.stop();
-            });
-            cameraPreview.src = '';
-            cameraPreview.poster = 'http://localhost:8080/ajax-loader.gif';
+          // get audio data-URL
+          recordAudio.getDataURL(function(audioDataURL) {
+            var files = {
+                audio: {
+                    type: recordAudio.getBlob().type || 'audio/wav',
+                    dataURL: audioDataURL
+                }
+            };
+            socket.emit('audioVideo', {files: files, id: sessionId, name: app.session});
+            if (mediaStream) mediaStream.stop();
+          });
+          cameraPreview.src = '';
+          cameraPreview.poster = 'http://localhost:8080/loading.gif';
         });
     };
     socket.on('merged', function(fileName, sessionName) {
@@ -372,28 +419,35 @@ jQuery(document).ready(function($) {
         socket.emit('audioVideoCapture', {file:fileName, id: sessionId, name: app.session, titre: titreVideo, legende: legendeVideo, tags: tagsVideo});
         $(".form-meta input").val("");
         $(".form-meta textarea").val("");
-        $(".form-meta.active").slideUp( "slow" ); 
-        $(".form-meta").removeClass('active');
+        $(".form-meta.active").slideUp( "slow", function(){ 
+          $(".form-meta").removeClass('active');
+          $('.left').animate({'left':'30%'}, 'slow');
+          $('.right').css("z-index", 3).removeClass('active').animate({'width':"200px", 'top':'60px', 'left':'87%', 'opacity': 0}, 500, function(){
+            $(this).css({"z-index": -1, "width":"800px", 'top':"200px", 'left':'30%', 'opacity':1});
+            $(".count-add-media").animate({'opacity': 1}, 700, function(){$(this).fadeOut(700);});
+          });
+        });
       });
     });
     socket.on('ffmpeg-output', function(result) {
-        // if (parseInt(result) >= 100) {
-        //     progressBar.parentNode.style.display = 'none';
-        //     return;
-        // }
-        // progressBar.parentNode.style.display = 'block';
-        // progressBar.value = result;
-        // percentage.innerHTML = 'Ffmpeg Progress ' + result + "%";
     });
     socket.on('ffmpeg-error', function(error) {
-        alert(error);
+      alert(error);
     });
   } 
+
+  //fenêtre de preview retroune au center
+  function backAnimation(){
+    if($(".right").hasClass('active')){
+      $('.left').animate({'left':'30%'}, 'slow');
+      $('.right').removeClass('active').animate({'top':'200px', 'left':'30%'}, 500,function(){$(this).css("display", "none")});
+    }
+  }
 
   //animation des fenêtres à la capture
   function animateWindows(data, capture){
     //$('.screenshot .canvas-view').hide();
-    $(".right").css('display', 'block');
+    $(".right").css('display', 'block').addClass('active');
     $('.left').animate({'left':'7%'}, 'slow');
     $('.right').animate({'left':'52%'}, 'slow', function(){
       $('.right').css('height', "auto");
@@ -410,7 +464,7 @@ jQuery(document).ready(function($) {
         $(".form-meta.active").slideUp( "slow", function(){ 
           $(".form-meta").removeClass('active');
           $('.left').animate({'left':'30%'}, 'slow');
-          $('.right').css("z-index", 3).animate({'width':"200px", 'top':'60px', 'left':'87%', 'opacity': 0}, 500, function(){
+          $('.right').css("z-index", 3).removeClass('active').animate({'width':"200px", 'top':'60px', 'left':'87%', 'opacity': 0}, 500, function(){
             $(this).css({"z-index": -1, "width":"800px", 'top':"200px", 'left':'30%', 'opacity':1});
             $(".count-add-media").animate({'opacity': 1}, 700, function(){$(this).fadeOut(700);});
           });
@@ -418,5 +472,146 @@ jQuery(document).ready(function($) {
       });
     });
   }
+
+// CREATE A SOUND EQUALIZER
+  function createEqualizer(){
+    // Hack to handle vendor prefixes
+    navigator.getUserMedia = ( navigator.getUserMedia ||
+                               navigator.webkitGetUserMedia ||
+                               navigator.mozGetUserMedia ||
+                               navigator.msGetUserMedia);
+
+    window.requestAnimFrame = (function(){
+      return  window.requestAnimationFrame       ||
+              window.webkitRequestAnimationFrame ||
+              window.mozRequestAnimationFrame    ||
+              function(callback, element){
+                window.setTimeout(callback, 1000 / 60);
+              };
+    })();
+
+    window.AudioContext = (function(){
+        return  window.webkitAudioContext || window.AudioContext || window.mozAudioContext;
+    })();
+
+    // Global Variables for Audio
+    var audioContext;
+    var analyserNode;
+    var javascriptNode;
+    var sampleSize = 1024;  // number of samples to collect before analyzing
+                            // decreasing this gives a faster sonogram, increasing it slows it down
+    var amplitudeArray;     // array to hold frequency data
+    var audioStream;
+
+    // Global Variables for Drawing
+    var column = 0;
+    var canvasWidth  = 620;
+    var canvasHeight = 256;
+    var ctx;
+
+    ctx = $("#canvas-audio").get()[0].getContext("2d");
+
+    try {
+        audioContext = new AudioContext();
+    } catch(e) {
+        alert('Web Audio API is not supported in this browser');
+    }
+    startEqualizer();
+    $('#stop-recording').click(function(e){
+      stopEqualizer(e);
+    });
+
+    function startEqualizer(){
+      clearCanvas();
+      // get the input audio stream and set up the nodes
+      try {
+          navigator.getUserMedia(
+            { video: false,
+              audio: true},
+            setupAudioNodes,
+            onError);
+      } catch (e) {
+          alert('webkitGetUserMedia threw exception :' + e);
+      }
+    }
+
+    function stopEqualizer(e){
+      e.preventDefault();
+      javascriptNode.onaudioprocess = null;
+      if(audioStream) audioStream.stop();
+      if(sourceNode)  sourceNode.disconnect();
+    }
+
+    function setupAudioNodes(stream) {
+        // create the media stream from the audio input source (microphone)
+        sourceNode = audioContext.createMediaStreamSource(stream);
+        audioStream = stream;
+
+        analyserNode   = audioContext.createAnalyser();
+        javascriptNode = audioContext.createScriptProcessor(sampleSize, 1, 1);
+
+        // Create the array for the data values
+        amplitudeArray = new Uint8Array(analyserNode.frequencyBinCount);
+
+        // setup the event handler that is triggered every time enough samples have been collected
+        // trigger the audio analysis and draw one column in the display based on the results
+        javascriptNode.onaudioprocess = function () {
+
+            amplitudeArray = new Uint8Array(analyserNode.frequencyBinCount);
+            analyserNode.getByteTimeDomainData(amplitudeArray);
+
+            // draw one column of the display
+            requestAnimFrame(drawTimeDomain);
+        }
+
+        // Now connect the nodes together
+        // Do not connect source node to destination - to avoid feedback
+        sourceNode.connect(analyserNode);
+        analyserNode.connect(javascriptNode);
+        javascriptNode.connect(audioContext.destination);
+    }
+
+    function onError(e) {
+        console.log(e);
+    }
+
+    function drawTimeDomain() {
+        var minValue = 9999999;
+        var maxValue = 0;
+
+        for (var i = 0; i < amplitudeArray.length; i++) {
+            var value = amplitudeArray[i] / 256;
+            if(value > maxValue) {
+                maxValue = value;
+            } else if(value < minValue) {
+                minValue = value;
+            }
+        }
+
+        var y_lo = canvasHeight - (canvasHeight * minValue) - 1;
+        var y_hi = canvasHeight - (canvasHeight * maxValue) - 1;
+
+        ctx.fillStyle = 'red';
+        ctx.fillRect(column,y_lo, 1, y_hi - y_lo);
+
+        // loop around the canvas when we reach the end
+        column += 1;
+        if(column >= canvasWidth) {
+            column = 0;
+            clearCanvas();
+        }
+    }
+
+    function clearCanvas() {
+        column = 0;
+        ctx.clearRect(0, 0, canvasWidth, canvasHeight);
+        ctx.strokeStyle = 'blue';
+        var y = (canvasHeight / 2) + 0.5;
+        ctx.moveTo(0, y);
+        ctx.lineTo(canvasWidth-1, y);
+        ctx.stroke();
+    }
+  }
+
   
 });

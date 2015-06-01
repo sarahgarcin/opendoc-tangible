@@ -137,6 +137,10 @@ button {
 .left .capture .audio-capture #stop-recording {
   display: none;
 }
+.left #canvas-audio {
+  display: none;
+  background-color: orange;
+}
 .right {
   width: 800px;
   height: 650px;
@@ -150,6 +154,8 @@ button {
 }
 .right .son {
   display: none;
+  padding-left: 80px;
+  margin-bottom: 40px;
 }
 .right #camera-preview {
   display: none;
