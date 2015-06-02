@@ -45,8 +45,6 @@ html
             img(src="/images/save.svg")
           button#capture-sm
             img(src="/images/save.svg")
-          button#stop-sm
-            img(src="/images/stop.svg")
         div.audio-capture
           button(id='start-recording')
             img(src="/images/save.svg")
@@ -66,6 +64,8 @@ html
       div.screenshot
         canvas#canvas.canvas-view
         video(id="camera-preview" autoplay controls loop)
+        button#stop-sm
+          img(src="/images/stop.svg")
       
       div.son
         audio(id="son" autoplay controls)

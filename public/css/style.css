@@ -123,15 +123,12 @@ button {
   display: none;
 }
 .left .capture .stopmotion-capture {
-  width: 160px;
+  width: 80px;
 }
 .left .capture .stopmotion-capture button {
   display: inline-block;
 }
 .left .capture .stopmotion-capture #capture-sm {
-  display: none;
-}
-.left .capture .stopmotion-capture #stop-sm {
   display: none;
 }
 .left .capture .audio-capture #stop-recording {
@@ -160,6 +157,10 @@ button {
 .right #camera-preview {
   display: none;
   width: 100%;
+}
+.right #stop-sm {
+  display: none;
+  float: right;
 }
 .video-view,
 .screenshot {

@@ -178,9 +178,15 @@ jQuery(document).ready(function($) {
       // Event bouton stop motion
       // Crée un nouveau stop motion + ajoute des images dedans + transforme le stop motion en vidéo
       startsm.addEventListener('click', function(){
-        $("#start-sm").hide();
-        $("#capture-sm").show();
-        $('.screenshot .canvas-view').show();
+        countImage = 0;
+        console.log(countImage);
+        $("#start-sm").hide(); $("#capture-sm").show(); $("#stop-sm").hide();
+        $('.screenshot .canvas-view').show(); $('#camera-preview').hide();
+        if($(".form-meta").hasClass('active')){
+          $(".form-meta.active").slideUp( "slow", function(){ 
+            $(".form-meta").removeClass('active');
+          });
+        }
         $(".right").css('display', 'block').addClass('active');
         $('.left').animate({'left':'7%'}, 'slow');
         $('.right').animate({'left':'52%'}, 'slow');
@@ -192,12 +198,16 @@ jQuery(document).ready(function($) {
             $("#stop-sm").show();
             $('.screenshot p').remove();
             countImage ++;
+            console.log(countImage);
             $(".screenshot").append("<p class='count-image'></p>");
             $(".screenshot .count-image").text("Image n°" + countImage);
             takepictureMotion(dir, countImage);
             ev.preventDefault();
           }, false);
           stopsm.addEventListener('click', function(ev){
+            $("#stop-sm").hide();
+            $("#start-sm").show();
+            $("#capture-sm").hide();
             countImage = 0;
             $('.screenshot .count-image').remove();
             socket.emit('StopMotion', {id: sessionId, name: app.session, dir: dir});
